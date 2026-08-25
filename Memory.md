@@ -29,10 +29,10 @@
 
 ## 3. Current Status
 
-**Phase:** Phase 3 Complete — Phase 0 (Setup), Phase 1 (Design System & Shell), Phase 2 (Core Public Pages), and Phase 3 (People Directory & Profiles) are all implemented, verified, and passing type-check and linting.
+**Phase:** Phase 5 Complete — Phase 0 (Setup), Phase 1 (Design System & Shell), Phase 2 (Core Public Pages), Phase 3 (People Directory & Profiles), Phase 4 (Research & Filterable Publications), and Phase 5 (News, Events & Interactive Gallery) are all fully implemented, verified, and passing type-check and linting (35 SSG routes generated).
 **As of:** 2026-08-26
 
-The website is fully functional in development mode (`npm run dev`) and builds statically with `npm run build` (0 lint errors, 0 type errors).
+All public routes of the CAIRRL Lab website are complete with smooth animations, accessible tokens, and interactive client filters. Next up is **Phase 6 (Database Layer)**.
 
 ---
 
@@ -40,6 +40,8 @@ The website is fully functional in development mode (`npm run dev`) and builds s
 
 *(Newest entry on top. Format: `YYYY-MM-DD — what got done — phase`)*
 
+- **2026-08-26** — Completed Phase 5: Implemented News overview & detail pages (`/news`, `/news/[slug]`), Events directory with Upcoming/Past split & detail pages (`/events`, `/events/[slug]`), and interactive Gallery grid with category filter tabs and modal lightbox viewer (`/gallery`). Configured AI agent rules and lifecycle hooks (`.agents/hooks.json`, `.agents/rules/cairrl-rules.md`, `scripts/agent-reminder.mjs`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`). — *Phase 5*
+- **2026-08-26** — Completed Phase 4: Implemented Research overview (`/research`), Research Area dynamic detail pages (`/research/[areaSlug]`), Project detail pages (`/research/projects/[projectSlug]`), and interactive filterable Publications catalogue (`/publications`) with type, year, area filters, search bar, and collapsible abstracts. — *Phase 4*
 - **2026-08-26** — Completed Phase 3: Built People directory page (`/people`) with segmented sections for Faculty, Graduate, and Undergraduate researchers, and individual dynamic profile pages (`/people/[slug]`) statically generated for all 7 team members from the PRD seed roster. — *Phase 3*
 - **2026-08-26** — Completed Phase 2: Built Home page (hero with grid overlay, animated stats strip, research highlights, placeholders for news and events, CTA), About page (mission, vision, story, affiliation), Join Us page (thesis & research student tracks), and Contact page (Zod-validated form with honeypot spam protection). — *Phase 2*
 - **2026-08-26** — Completed Phase 1: Configured Design.md visual tokens (brand-navy, accent-cyan, surface-muted, etc.), imported Google Fonts (Inter, Space Grotesk, JetBrains Mono), implemented responsive Navbar with mobile slide-in drawer and active indicator, 3-column Footer, shared Container and SectionHeading components, and smooth scroll-in animations with reduced-motion support. — *Phase 1*

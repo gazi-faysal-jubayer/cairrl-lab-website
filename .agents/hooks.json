@@ -1,0 +1,11 @@
+{
+  "cairrl-reminder": {
+    "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node ./scripts/agent-reminder.mjs"
+      }
+    ]
+  }
+}
