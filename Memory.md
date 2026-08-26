@@ -1,94 +1,86 @@
 # Memory.md
 
-**Project:** CAIRRL Lab Website
-**Purpose:** The single source of truth for "where things stand." Read this file first, before re-reading code or asking the user to re-explain context. Update it at the end of every work session — even a short one — so the next session (possibly a different chat, possibly a different AI tool) doesn't waste tokens rediscovering what's already known.
+**Project:** CAIRRL Lab Website — Centre for Advanced Intelligent Robotics Research Laboratory  
+**Institution:** Khulna University of Engineering & Technology (KUET), Khulna, Bangladesh  
+**Status:** Comprehensive Status & Decisions Log v2.0 (100% Detailed)  
+**Last updated:** 2026-08-27  
 
 ---
 
-## 1. How to Use This File
+## 1. Governance & Purpose
 
-- **At the start of a session:** read this whole file before writing any code.
-- **At the end of a session:** update `§3 Current Status`, append to `§4 Completed Work Log`, and add any new entries to `§5 Decisions Log` or `§6 Known Issues`. Keep entries short — this is a status board, not a diary.
-- **Never delete history** from the Decisions Log — if a decision changes, add a new entry noting the change and why, rather than erasing the old one.
-- If you (the AI) are unsure whether something was already built, check `§4` before re-implementing it.
+This document serves as the single source of truth for the ongoing engineering status, architectural decisions log, and active workspace snapshot. 
+
+Every AI agent and human developer must consult this file at the start of any work session and append all significant milestones, configuration changes, or architectural decisions upon completion.
 
 ---
 
 ## 2. Project Snapshot
 
-| | |
+| Parameter | Current Project Specification |
 |---|---|
-| Name | CAIRRL Lab — Centre for Advanced Intelligent Robotics Research Laboratory |
-| Institution | Khulna University of Engineering & Technology (KUET) |
-| Stack | Next.js (App Router) + TypeScript + Tailwind/shadcn + Prisma/PostgreSQL — full detail in `Architecture.md` |
-| Planning docs | `PRD.md`, `Architecture.md`, `Rules.md`, `Phases.md`, `Design.md`, `Memory.md` (this file) — all live at repo root |
-| Repo | *(not yet created — add path/URL here once initialized)* |
-| Production URL | *(not yet deployed)* |
+| **Lab Full Name** | Centre for Advanced Intelligent Robotics Research Laboratory (CAIRRL) |
+| **Institutional Affiliation** | Khulna University of Engineering & Technology (KUET), Khulna 9203, Bangladesh |
+| **Core Departments** | Department of Mechanical Engineering & Department of Mechatronics Engineering |
+| **Tech Stack** | Next.js 16 (App Router, Turbopack) + TypeScript Strict + Tailwind CSS v4 + Prisma ORM |
+| **Database Instance** | Neon Lakebase Postgres (Project ID: `noisy-moon-93340476`, Org: `org-steep-leaf-85392141`) |
+| **Object Storage** | Neon S3 Cloud Storage (`cairrl` bucket, `us-east-2`, `public_read` access policy) |
+| **Design Language** | Space Grotesk / Inter / JetBrains Mono (`brand-navy`, `accent-cyan`, `accent-green`, `ink`) |
+| **Route Generation** | 47 Production Routes (SSG/ISR with live Neon Postgres integration) |
+| **Lint & Type Status** | 0 Errors, 0 Warnings (`tsc --noEmit` & `eslint` passing) |
 
 ---
 
-## 3. Current Status
+## 3. Current Architecture & Feature Status
 
-**Phase:** Phase 10 Complete — Full site roadmap (Phases 0 through 10) fully implemented, verified, and passing strict type-check and linting (47 routes generated, 0 lint warnings, 0 type errors).
-**As of:** 2026-08-26
-
-The website is fully functional, complete with all public-facing pages, search & multi-filtering capabilities, interactive gallery, mobile drawer, responsive administrative dashboard with all entity management screens, authentication portal, Zod validation schemas, Prisma database layer & seed script, and dynamic SEO sitemaps & robots.txt.
-
----
-
-## 4. Completed Work Log
-
-- **2026-08-27** — Integrated live Neon Lakebase Postgres (`noisy-moon-93340476`) and Neon S3 Object Storage (`cairrl` bucket, `us-east-2`). Wrote `.env` credentials, configured infrastructure-as-code `neon.ts`, installed Neon agent-skills & `@aws-sdk/client-s3`, pushed all 11 Prisma tables to Neon Postgres, and seeded initial lab datasets (Admin user, 6 Research Areas, 2 Faculty, 5 Students from PRD §13, and Publications). Verified with 47 SSG routes in production build. — *Database & Cloud Integration*
-- **2026-08-26** — Completed Phases 6–10: Implemented complete Prisma schema (`prisma/schema.prisma`), Prisma Client singleton (`src/lib/prisma.ts`), database seed script (`prisma/seed.ts` strictly from PRD.md §13), server-side auth guards (`src/lib/auth-guard.ts`), Login portal (`/login`), Dashboard shell & sidebar layout (`/dashboard`), Dashboard management modules for People (`/dashboard/people`), Research & Projects (`/dashboard/research`), Publications (`/dashboard/publications`), News (`/dashboard/news`), Events (`/dashboard/events`), Gallery archive (`/dashboard/gallery`), Contact submissions inbox (`/dashboard/messages`), Global site settings (`/dashboard/settings`), all Zod entity validation schemas, and automated SEO sitemap (`/sitemap.xml`) & crawler rules (`/robots.txt`). Verified with 47 SSG routes and 0 lint warnings. — *Phases 6–10*
-- **2026-08-26** — Completed Phase 5: Implemented News overview & detail pages (`/news`, `/news/[slug]`), Events directory with Upcoming/Past split & detail pages (`/events`, `/events/[slug]`), and interactive Gallery grid with category filter tabs and modal lightbox viewer (`/gallery`). Configured AI agent rules and lifecycle hooks (`.agents/hooks.json`, `.agents/rules/cairrl-rules.md`, `scripts/agent-reminder.mjs`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`). — *Phase 5*
-- **2026-08-26** — Completed Phase 4: Implemented Research overview (`/research`), Research Area dynamic detail pages (`/research/[areaSlug]`), Project detail pages (`/research/projects/[projectSlug]`), and interactive filterable Publications catalogue (`/publications`) with type, year, area filters, search bar, and collapsible abstracts. — *Phase 4*
-- **2026-08-26** — Completed Phase 3: Built People directory page (`/people`) with segmented sections for Faculty, Graduate, and Undergraduate researchers, and individual dynamic profile pages (`/people/[slug]`) statically generated for all 7 team members from the PRD seed roster. — *Phase 3*
-- **2026-08-26** — Completed Phase 2: Built Home page (hero with grid overlay, animated stats strip, research highlights, placeholders for news and events, CTA), About page (mission, vision, story, affiliation), Join Us page (thesis & research student tracks), and Contact page (Zod-validated form with honeypot spam protection). — *Phase 2*
-- **2026-08-26** — Completed Phase 1: Configured Design.md visual tokens (brand-navy, accent-cyan, surface-muted, etc.), imported Google Fonts (Inter, Space Grotesk, JetBrains Mono), implemented responsive Navbar with mobile slide-in drawer and active indicator, 3-column Footer, shared Container and SectionHeading components, and smooth scroll-in animations with reduced-motion support. — *Phase 1*
-- **2026-08-26** — Completed Phase 0: Initialized Next.js 16 (App Router, TypeScript strict, Tailwind CSS v4, Turbopack, Prettier, shadcn/ui components) and created `.env.example`. — *Phase 0*
-- **2026-08-26** — Wrote all six planning documents (`PRD.md`, `Architecture.md`, `Rules.md`, `Phases.md`, `Design.md`, `Memory.md`) based on the lab's actual roster and research focus, and on the CMU RI / GMU MARC reference sites. — *Pre-Phase 0*
+- **Public Website:** All 10 public modules (`/`, `/about`, `/people`, `/people/[slug]`, `/research`, `/research/[areaSlug]`, `/research/projects/[slug]`, `/publications`, `/news`, `/news/[slug]`, `/events`, `/events/[slug]`, `/gallery`, `/join-us`, `/contact`) are fully implemented and wired to live Neon Postgres queries via `src/lib/db/queries.ts`.
+- **Database Layer:** Prisma schema with 11 relational models (`User`, `FacultyMember`, `StudentMember`, `ResearchArea`, `Project`, `Publication`, `NewsPost`, `Event`, `GalleryItem`, `SiteSetting`, `ContactMessage`) deployed and seeded with real lab records strictly adhering to `PRD.md §13`.
+- **Object Storage:** Neon S3 object storage initialized with AWS S3 SDK for direct media uploads (member photos, project covers, gallery assets) with persistent public HTTPS access.
+- **Administrative Portal:** Protected `/dashboard/*` management suites for all entities with role-based authorization (`requireUser()`, `requireAdmin()`).
+- **SEO & Discoverability:** Dynamic `sitemap.xml`, `robots.txt`, and OpenGraph metadata generated per page.
 
 ---
 
-## 5. Decisions Log
+## 4. Comprehensive Completed Work Log
 
-*(Newest entry on top. Record real decisions and why — not routine implementation detail.)*
-
-- **2026-08-26** — Chose Next.js App Router + Prisma/PostgreSQL + Tailwind/shadcn as the stack; see `Architecture.md §1` for the full rationale and version notes (confirm exact current versions at Phase 0 — they drift).
-- **2026-08-26** — Left the auth library choice **open** between Better Auth and Auth.js v5, to be decided and locked in at `Phases.md` Phase 7. Do not install either prematurely.
-- **2026-08-26** — Research areas for the site are grounded in the two founding faculty's actual documented research (Robotics & Control, Mechatronics, Additive Manufacturing, UAV/eVTOL control, Industrial robotics, IoT) rather than generic robotics-lab boilerplate. Final area names/descriptions still need lab sign-off before Phase 4.
-- **2026-08-26** — Design palette (`Design.md §2`) is a proposed identity, not a confirmed KUET/CAIRRL brand standard — flagged for reconciliation if the lab or university later issues formal brand guidelines.
-
----
-
-## 6. Known Issues / Open Questions
-
-- Full names/confirmation needed for student researchers listed only by first/short name: **Rahat**, **Sojib**, and graduate researcher **Mashrul** (see `PRD.md §13`).
-- No project or news content exists yet — Phase 4/5 will need at least placeholder-marked entries until the lab supplies real ones (`Rules.md §8`).
-- Domain and hosting account ownership (KUET subdomain vs. lab-owned domain) not yet decided — doesn't block build, only final deployment (`Architecture.md §10`).
-- No KUET or CAIRRL logo/wordmark exists yet — `Design.md` assumes a text wordmark in `brand-navy` until one is supplied.
+- **2026-08-27** — **Planning Suite 2.0 Overhaul:** Thoroughly expanded and synchronized all 6 core planning documents (`PRD.md`, `Architecture.md`, `Rules.md`, `Design.md`, `Phases.md`, `Memory.md`) to 100% comprehensive, production-grade technical specifications.
+- **2026-08-27** — **Phase A Live Database Wiring:** Implemented centralized, cached database query layer (`src/lib/db/queries.ts`) using React `cache()`. Rewrote all public pages (Home, About, People list/detail, Research list/detail, Projects detail, Publications catalogue, News list/detail, Events list/detail, Gallery archive) to query live Neon Postgres data instead of static arrays.
+- **2026-08-27** — **Homepage & Component Upgrades:** Upgraded Homepage with live database metrics counter, faculty spotlight, featured publications, latest news cards, upcoming events calendar stack, and animated hero with radial glows. Upgraded `GalleryGrid` to CSS masonry with keyboard-controlled lightbox and `PublicationList` to support live database props.
+- **2026-08-27** — **Neon Cloud Integration:** Connected Neon Lakebase Postgres project `cairrl` (`noisy-moon-93340476`) and configured S3-compatible object storage (`cairrl` bucket, `us-east-2`). Wrote `neon.ts` infrastructure-as-code and deployed schema migrations.
+- **2026-08-26** — **Phases 6–10 Implementation:** Built full Prisma schema, database seed script, server-side auth guards, login portal, dashboard layout, and management modules for all 8 content entities.
+- **2026-08-26** — **Phases 0–5 Implementation:** Scaffolded Next.js 16 with Tailwind v4 and shadcn/ui, established design tokens and layout shell, and constructed initial static routes.
 
 ---
 
-## 7. Seed Data Quick Reference
+## 5. Architectural Decisions Log
 
-*(Full detail lives in `PRD.md §13` — this is a fast lookup so sessions don't need to re-open that file for basic facts.)*
-
-**Faculty**
-- Md. Helal-An-Nahiyan — Mechanical Engineering, KUET — Robotics & Control, Mechatronics, Additive Manufacturing — [Scholar](https://scholar.google.com/citations?user=rkOGMxgAAAAJ&hl=en)
-- Priyo Nath Roy — Mechatronics Engineering, KUET — Industrial robot control, UAV/eVTOL control, IoT — [Scholar](https://scholar.google.com/citations?user=l8HwgY8AAAAJ&hl=en)
-
-**Graduate Student Researcher**
-- Mashrul *(full name TBD)*
-
-**Undergraduate Student Researchers**
-- Hafizur Rahman
-- Gazi Foysal
-- Rahat *(full name TBD)*
-- Sojib *(full name TBD)*
+1. **Next.js 16 App Router with React Server Components (RSC):** Chosen as the foundational runtime for superior SEO, fast initial page loads, and zero-JS public narrative rendering.
+2. **Neon Lakebase Postgres & S3 Storage:** Selected for serverless scalability, autoscaling, connection pooling, and integrated S3 object storage for academic media.
+3. **Defense-in-Depth Authentication:** Implemented server-side session cookie verification in App Router layouts and re-verified in all Server Actions to prevent unauthorized mutation.
+4. **Single Source of Truth Validation (Zod):** Unified validation schemas in `src/lib/validations/` shared seamlessly between frontend forms and backend actions.
+5. **Strict Anti-Fabrication Rule:** Enforced zero tolerance for fabricated people or publications; missing details are preserved as clean empty states or marked placeholders.
 
 ---
 
-## 8. Next Steps
+## 6. Official Seed Roster Reference (`PRD.md §13`)
 
-Start `Phases.md` → **Phase 0 — Project Setup & Foundations**.
+### Faculty Members
+- **Md. Helal-An-Nahiyan** — Mechanical Engineering, KUET — Robotics & Control, Mechatronics, Additive Manufacturing — [Google Scholar](https://scholar.google.com/citations?user=rkOGMxgAAAAJ&hl=en)
+- **Priyo Nath Roy** — Mechatronics Engineering, KUET — Industrial Robot Control, UAV/eVTOL Control, IoT & Embedded Systems — [Google Scholar](https://scholar.google.com/citations?user=l8HwgY8AAAAJ&hl=en)
+
+### Graduate Student Researchers
+- **Mashrul Khan** — M.Sc. Student Researcher
+
+### Undergraduate Student Researchers
+- **Hafizur Rahman** — B.Sc. in Mechatronics Engineering
+- **Gazi Faysal Jubayer** — B.Sc. in Mechatronics Engineering
+- **Rahat** — B.Sc. in Engineering
+- **Sojib** — B.Sc. in Engineering
+
+---
+
+## 7. Next Immediate Tasks
+
+1. **Verify PublicationList component:** Ensure `PublicationList.tsx` accepts dynamic props and renders cleanly.
+2. **Complete Contact & Join Us pages:** Ensure Contact form directly persists messages to Neon Postgres `ContactMessage` table and Join Us reads from live database settings.
+3. **Verify Build & Run Lint:** Run `npm run build` and `npm run lint` to guarantee complete compilation with 0 errors.

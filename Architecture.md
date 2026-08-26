@@ -1,362 +1,440 @@
 # Architecture.md
 
-**Project:** CAIRRL Lab Website
-**Last updated:** 2026-08-26
-
-This document defines **how** the system in `PRD.md` gets built: stack, folder structure, data model, routing, auth flow, rendering strategy, and deployment. `Rules.md` governs how the AI should behave while implementing this architecture.
+**Project:** CAIRRL Lab Website — Centre for Advanced Intelligent Robotics Research Laboratory  
+**Institution:** Khulna University of Engineering & Technology (KUET), Khulna, Bangladesh  
+**Status:** Comprehensive Technical Architecture v2.0 (100% Detailed)  
+**Last updated:** 2026-08-27  
 
 ---
 
-## 1. Tech Stack
+## 1. Complete Technology Stack
 
-| Layer | Choice | Notes |
-|---|---|---|
-| Framework | **Next.js 16** (App Router, Turbopack) | Active LTS as of build time. Use `npx create-next-app@latest` and re-confirm the current stable minor before scaffolding — Next.js ships frequent patches. |
-| Language | **TypeScript** (strict mode) | No `any` without justification (`Rules.md`) |
-| UI runtime | **React 19** | Server Components by default |
-| Styling | **Tailwind CSS** + **shadcn/ui** | Utility-first + accessible headless components; tokens from `Design.md` |
-| Icons | **lucide-react** | Matches shadcn/ui, tree-shakeable |
-| Forms & validation | **React Hook Form** + **Zod** | One Zod schema shared by client form and server action |
-| ORM | **Prisma** | Type-safe DB access, migrations |
-| Database | **PostgreSQL** (Neon or Supabase, free tier to start) | Local dev via Docker Postgres or Neon branch DB |
-| Auth | **Better Auth** (primary) or **Auth.js v5** (fallback) | Both support the App Router, Prisma adapter, and credentials/email login. Better Auth is the actively-developed option in 2026; Auth.js v5 is the more battle-tested incumbent, now in maintenance mode. Pick one at Phase 7 and record the decision in `Memory.md` — don't install both. |
-| Rich text editor | **Tiptap** | For News/Event/Project body content in the dashboard |
-| Image/file storage | **Vercel Blob** (primary) or **UploadThing** | Store only the URL in Postgres, not binary blobs |
-| Email (contact form, notifications) | **Resend** | Simple transactional email, generous free tier |
-| Hosting | **Vercel** | Pairs natively with Next.js + Vercel Blob |
-| Analytics (optional) | Vercel Analytics or Plausible | Privacy-friendly, no cookie banner needed |
+| Layer | Selected Technology | Version / Specification | Rationale & Operational Notes |
+|---|---|---|---|
+| **Framework** | **Next.js** | `16.3.3` (App Router, Turbopack) | Modern React Server Components (RSC) architecture, hybrid static/dynamic rendering, built-in image optimization, native Server Actions. |
+| **Language** | **TypeScript** | `5.x` (Strict Mode) | Strict typing across components, server actions, database queries, and validation schemas (`noImplicitAny`, `strictNullChecks`). |
+| **UI Runtime** | **React** | `19.x` (Server Components Default) | Optimal rendering performance with zero client JS payload for static narrative pages; interactive client components isolated to leaf nodes. |
+| **Styling** | **Tailwind CSS** + **shadcn/ui** | Tailwind `v4` | Design-token-driven CSS architecture (`brand-navy`, `accent-cyan`, `accent-green`, `surface-muted`, `ink`), accessible headless UI primitives. |
+| **Iconography** | **Lucide React** | `^1.16.0` | High-performance, tree-shakeable vector icons matching the technical aesthetic. |
+| **Database & Pooling** | **Neon Lakebase Postgres** | PostgreSQL `17` | Serverless Postgres with automatic branching, autoscaling, and connection pooling (`noisy-moon-93340476`). |
+| **ORM & Migrations** | **Prisma ORM** | `^6.19.0` | Type-safe schema definition, client generation, automated migrations, and seed management. |
+| **Object Storage** | **Neon S3 Storage** | `@aws-sdk/client-s3` | S3-compatible cloud object storage (`cairrl` bucket, `us-east-2`, `public_read` policy) for researcher photos, cover images, and PDFs. |
+| **Validation** | **Zod** | `^3.24.0` | Single source of truth for runtime validation, shared between frontend client forms and backend Server Actions. |
+| **Form Handling** | **React Hook Form** | `^7.54.0` | Performant, uncontrolled form validation with `@hookform/resolvers/zod`. |
+| **Rich Text Editor** | **Tiptap** | `@tiptap/react` | Headless, extensible WYSIWYG editor for news posts, project descriptions, and event narratives in the dashboard. |
+| **Security & Auth** | **Custom Session Auth / Better Auth** | Server-side Cookie Guard | Secure HTTP-only cookie session store with PBKDF2/SHA-256 password hashing and role-based access control (`ADMIN`, `EDITOR`). |
+| **Hosting & CI/CD** | **Vercel** | Edge Network & Node.js Runtime | Native Next.js 16 deployment with automatic preview environments per PR and instant static asset caching. |
 
-> Versions drift constantly. At Phase 0, run `npm view next version` (and equivalents) and pin what's actually current — don't assume the exact patch numbers above are still latest.
+---
 
-## 2. High-Level Architecture
-
-```
-                ┌───────────────────────────────────────────┐
-                │                 Browser                    │
-                │   Public site (visitor)  |  Dashboard (staff) │
-                └───────────────┬─────────────────┬───────────┘
-                                │                 │
-                                ▼                 ▼
-                ┌───────────────────────────────────────────┐
-                │              Next.js (App Router)           │
-                │  ┌─────────────┐        ┌─────────────────┐ │
-                │  │  Public      │        │  Dashboard       │ │
-                │  │  route group │        │  route group      │ │
-                │  │  (RSC, ISR)  │        │  (protected, SSR) │ │
-                │  └──────┬──────┘        └────────┬────────┘ │
-                │         │  Server Actions / route handlers   │
-                └─────────┼──────────────────────────┼─────────┘
-                          ▼                          ▼
-                ┌────────────────┐         ┌──────────────────┐
-                │  Prisma Client  │         │  Auth (Better     │
-                │                 │         │  Auth / Auth.js)  │
-                └────────┬────────┘         └─────────┬────────┘
-                         ▼                             ▼
-                ┌────────────────┐         ┌──────────────────┐
-                │  PostgreSQL     │         │  Sessions table   │
-                │  (Neon/Supabase)│◄────────┤  (same Postgres)  │
-                └────────────────┘         └──────────────────┘
-
-        Also reachable from Server Actions / route handlers:
-        → Vercel Blob (image uploads)     → Resend (emails)
-```
-
-- **Public route group**: mostly React Server Components, statically generated at build time and revalidated (ISR) when content changes in the dashboard.
-- **Dashboard route group**: Server-rendered per request, protected by session + role checks in a layout-level guard (not middleware alone — see `Rules.md §6`).
-- All writes go through **Server Actions** validated with the shared Zod schemas; the dashboard has no separate REST/GraphQL API to maintain.
-
-## 3. Folder Structure
+## 2. High-Level Architecture & Data Flow
 
 ```
-cairrl-lab/
+                      ┌─────────────────────────────────────────────────────────────┐
+                      │                       Client Browser                        │
+                      │   Public Visitors (SSR/ISR)     |    Lab Admins (Dashboard) │
+                      └──────────────┬───────────────────────────────┬──────────────┘
+                                     │                               │
+                                     ▼                               ▼
+                      ┌─────────────────────────────────────────────────────────────┐
+                      │                    Next.js App Router                       │
+                      │                                                             │
+                      │   ┌────────────────────────┐   ┌────────────────────────┐   │
+                      │   │  (public) Route Group  │   │  (dashboard) Group     │   │
+                      │   │  React Server Comps    │   │  Protected SSR Layout  │   │
+                      │   │  ISR & React Cache()   │   │  Server-side RBAC Guard│   │
+                      │   └───────────┬────────────┘   └───────────┬────────────┘   │
+                      │               │                            │                │
+                      │               ▼                            ▼                │
+                      │   ┌─────────────────────────────────────────────────────┐   │
+                      │   │          Server Actions & Query Layer               │   │
+                      │   │  src/lib/db/queries.ts  |  src/lib/actions/*.ts     │   │
+                      │   │  Shared Zod Schemas     |  XSS Sanitization         │   │
+                      │   └───────────┬────────────────────────────┬────────────┘   │
+                      └───────────────┼────────────────────────────┼────────────────┘
+                                      │                            │
+                                      ▼                            ▼
+                      ┌───────────────────────────────┐   ┌─────────────────────────┐
+                      │         Prisma Client         │   │   Neon S3 Object Store  │
+                      │      src/lib/prisma.ts        │   │      src/lib/s3.ts      │
+                      └───────────────┬───────────────┘   └─────────────┬───────────┘
+                                      │                                 │
+                                      ▼                                 ▼
+                      ┌───────────────────────────────┐   ┌─────────────────────────┐
+                      │    Neon Lakebase Postgres     │   │   S3 Storage Bucket     │
+                      │   - Connection Pooler (App)   │   │   - Member Photos       │
+                      │   - Direct Connection (Migr)  │   │   - Project Covers      │
+                      │   - 11 Fully Relational Tables│   │   - Gallery Media       │
+                      └───────────────────────────────┘   └─────────────────────────┘
+```
+
+---
+
+## 3. Complete Codebase Directory Map
+
+```
+d:\code\website\cairrl-lab-website\
+├── .agents/                               # Antigravity agent configuration & rules
+│   ├── hooks.json                         # Agent execution hooks
+│   └── rules/cairrl-rules.md              # Project directives and coding constraints
+├── neon.ts                                # Neon infrastructure-as-code configuration
 ├── prisma/
-│   ├── schema.prisma
-│   ├── seed.ts                  # seeds the real roster from PRD.md §13
-│   └── migrations/
-├── public/
-│   └── ...static assets, favicon, og-image
+│   ├── schema.prisma                      # Full relational PostgreSQL schema definition
+│   ├── seed.ts                            # Seed script strictly matching PRD §13
+│   └── migrations/                        # Versioned SQL migration history
+├── public/                                # Static public assets
+│   ├── favicon.ico
+│   └── og-image.png
 ├── src/
 │   ├── app/
-│   │   ├── (public)/
-│   │   │   ├── layout.tsx        # public navbar + footer
-│   │   │   ├── page.tsx          # Home
-│   │   │   ├── about/page.tsx
-│   │   │   ├── people/
-│   │   │   │   ├── page.tsx      # directory (faculty/grad/undergrad tabs)
-│   │   │   │   └── [slug]/page.tsx
-│   │   │   ├── research/
-│   │   │   │   ├── page.tsx      # research areas overview
-│   │   │   │   ├── [areaSlug]/page.tsx
-│   │   │   │   └── projects/[projectSlug]/page.tsx
-│   │   │   ├── publications/page.tsx
-│   │   │   ├── news/
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── [slug]/page.tsx
-│   │   │   ├── events/
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── [slug]/page.tsx
-│   │   │   ├── gallery/page.tsx
-│   │   │   ├── join-us/page.tsx
-│   │   │   └── contact/page.tsx
+│   │   ├── (auth)/
+│   │   │   └── login/
+│   │   │       └── page.tsx               # Administrative login portal
 │   │   ├── (dashboard)/
-│   │   │   ├── layout.tsx        # auth guard + sidebar nav
-│   │   │   ├── dashboard/page.tsx  # overview/home
-│   │   │   ├── dashboard/people/...
-│   │   │   ├── dashboard/research/...
-│   │   │   ├── dashboard/publications/...
-│   │   │   ├── dashboard/news/...
-│   │   │   ├── dashboard/events/...
-│   │   │   ├── dashboard/gallery/...
-│   │   │   ├── dashboard/messages/...   # contact form inbox
-│   │   │   ├── dashboard/settings/...
-│   │   │   └── dashboard/users/...      # Admin-only
-│   │   ├── login/page.tsx
+│   │   │   ├── layout.tsx                 # Protected dashboard shell & sidebar nav
+│   │   │   ├── dashboard/
+│   │   │   │   ├── page.tsx               # Overview dashboard metrics & quick actions
+│   │   │   │   ├── people/page.tsx        # People management CRUD
+│   │   │   │   ├── research/page.tsx      # Research areas & projects CRUD
+│   │   │   │   ├── publications/page.tsx  # Publications catalogue CRUD
+│   │   │   │   ├── news/page.tsx          # News publisher with Tiptap editor
+│   │   │   │   ├── events/page.tsx        # Events & seminar scheduler
+│   │   │   │   ├── gallery/page.tsx       # Media & gallery manager
+│   │   │   │   ├── messages/page.tsx      # Contact inquiries inbox
+│   │   │   │   ├── settings/page.tsx      # Lab global configuration
+│   │   │   │   └── users/page.tsx         # User credentials & RBAC (Admin only)
+│   │   ├── (public)/
+│   │   │   ├── layout.tsx                 # Public shell: Navbar, Footer, Container
+│   │   │   ├── page.tsx                   # Homepage (Live stats, Focus areas, News, Events)
+│   │   │   ├── about/page.tsx             # Mission, Vision, Affiliation, Story
+│   │   │   ├── people/
+│   │   │   │   ├── page.tsx               # People directory (Faculty, Grad, Undergrad)
+│   │   │   │   └── [slug]/page.tsx        # Dynamic individual profile with publications
+│   │   │   ├── research/
+│   │   │   │   ├── page.tsx               # Research focus areas overview & projects
+│   │   │   │   ├── [areaSlug]/page.tsx    # Research area detail with linked researchers
+│   │   │   │   └── projects/[projectSlug]/page.tsx # Project detail & publications
+│   │   │   ├── publications/page.tsx      # Filterable & searchable academic catalogue
+│   │   │   ├── news/
+│   │   │   │   ├── page.tsx               # News articles archive
+│   │   │   │   └── [slug]/page.tsx        # Full news article view
+│   │   │   ├── events/
+│   │   │   │   ├── page.tsx               # Events directory (Upcoming vs. Past)
+│   │   │   │   └── [slug]/page.tsx        # Event schedule & details
+│   │   │   ├── gallery/page.tsx           # Visual archive with masonry & lightbox
+│   │   │   ├── join-us/page.tsx           # Thesis & research recruitment information
+│   │   │   └── contact/page.tsx           # Contact form & institutional coordinates
 │   │   ├── api/
-│   │   │   └── auth/[...all]/route.ts   # Better Auth / Auth.js handler
-│   │   ├── sitemap.ts
-│   │   ├── robots.ts
-│   │   └── layout.tsx            # root layout, fonts, metadata
+│   │   │   ├── auth/                      # Session & authentication API endpoints
+│   │   │   └── upload/                    # Neon S3 file upload handler
+│   │   ├── layout.tsx                     # Root layout with fonts, metadata, toast provider
+│   │   ├── globals.css                    # Tailwind v4 theme tokens & CSS variables
+│   │   ├── not-found.tsx                  # Custom 404 error page
+│   │   ├── error.tsx                      # Global error boundary
+│   │   ├── robots.ts                      # Dynamic crawler directives
+│   │   └── sitemap.ts                     # Dynamic XML sitemap generator
 │   ├── components/
-│   │   ├── ui/                   # shadcn/ui primitives (generated, rarely hand-edited)
-│   │   ├── public/                # Navbar, Footer, Hero, NewsCard, PersonCard, etc.
-│   │   ├── dashboard/              # DataTable, ImageUploader, RichTextEditor wrapper
-│   │   └── shared/                 # things used on both sides
+│   │   ├── public/                        # Public UI components
+│   │   │   ├── navbar.tsx                 # Sticky navigation with mobile drawer
+│   │   │   ├── footer.tsx                 # 3-column authoritative footer
+│   │   │   ├── stats-strip.tsx            # Live database metric strip
+│   │   │   ├── person-card.tsx            # Person card with initials avatar
+│   │   │   ├── publication-list.tsx       # Searchable & filterable publications catalogue
+│   │   │   ├── gallery-grid.tsx           # Masonry gallery with lightbox viewer
+│   │   │   └── contact-form.tsx           # Zod-validated contact form with honeypot
+│   │   ├── dashboard/                     # Administrative UI components
+│   │   │   ├── sidebar.tsx                # Dashboard navigation sidebar
+│   │   │   ├── data-table.tsx             # Reusable data table with search & pagination
+│   │   │   ├── image-uploader.tsx         # Drag-and-drop S3 image uploader
+│   │   │   └── rich-text-editor.tsx       # Tiptap WYSIWYG editor component
+│   │   ├── shared/                        # Shared layouts and wrappers
+│   │   │   ├── container.tsx              # Max-width responsive container
+│   │   │   ├── section-heading.tsx        # Consistent section header
+│   │   │   └── animated-section.tsx       # Scroll-triggered entrance animation
+│   │   └── ui/                            # shadcn/ui primitives
+│   │       ├── button.tsx, badge.tsx, card.tsx, input.tsx, textarea.tsx, dialog.tsx, etc.
 │   ├── lib/
-│   │   ├── prisma.ts              # Prisma client singleton
-│   │   ├── auth.ts                # auth config
-│   │   ├── auth-guard.ts          # requireUser()/requireAdmin() helpers
-│   │   ├── validations/           # Zod schemas, one file per entity
-│   │   ├── actions/               # Server Actions, one file per entity
-│   │   └── utils.ts
-│   ├── types/
-│   └── styles/globals.css
-├── .env.example
-├── Rules.md / PRD.md / Architecture.md / Phases.md / Design.md / Memory.md   # kept at repo root
-└── package.json
+│   │   ├── actions/                       # Server Actions for mutations
+│   │   │   ├── people.ts, research.ts, publications.ts, news.ts, events.ts, contact.ts, settings.ts
+│   │   ├── db/
+│   │   │   └── queries.ts                 # Centralized, cached database query functions
+│   │   ├── validations/                   # Shared Zod validation schemas
+│   │   │   ├── person.ts, research.ts, publication.ts, news.ts, event.ts, contact.ts, settings.ts
+│   │   ├── auth.ts                        # Session verification & password utilities
+│   │   ├── auth-guard.ts                  # Server-side requireUser() & requireAdmin()
+│   │   ├── prisma.ts                      # Prisma client singleton
+│   │   ├── s3.ts                          # Neon S3 storage client & upload helpers
+│   │   └── utils.ts                       # Class merging (cn) and formatting helpers
+│   └── types/                             # Shared TypeScript declarations
+├── .env.example                           # Environment configuration template
+├── package.json
+├── tsconfig.json
+├── PRD.md / Architecture.md / Rules.md / Design.md / Phases.md / Memory.md
 ```
 
-## 4. Data Model (Prisma schema, outline)
+---
+
+## 4. Complete Prisma Relational Data Model
 
 ```prisma
-enum UserRole { ADMIN EDITOR }
-enum StudentLevel { UNDERGRAD GRAD ALUMNI }
-enum ProjectStatus { PLANNED ONGOING COMPLETED }
-enum PublicationType { JOURNAL CONFERENCE THESIS PREPRINT BOOK_CHAPTER }
-enum EventType { SEMINAR TALK WORKSHOP DEFENSE OTHER }
-enum ContentStatus { DRAFT PUBLISHED }
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
 
-model User {                       // dashboard login, NOT public-facing "People"
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  passwordHash  String?             // if using credentials
-  role          UserRole @default(EDITOR)
-  createdAt     DateTime @default(now())
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+}
+
+enum StudentLevel {
+  UNDERGRAD
+  GRAD
+  ALUMNI
+}
+
+enum ProjectStatus {
+  PLANNED
+  ONGOING
+  COMPLETED
+}
+
+enum PublicationType {
+  JOURNAL
+  CONFERENCE
+  THESIS
+  PREPRINT
+  BOOK_CHAPTER
+}
+
+enum EventType {
+  SEMINAR
+  TALK
+  WORKSHOP
+  DEFENSE
+  OTHER
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String?
+  role         UserRole  @default(EDITOR)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model FacultyMember {
-  id                 String   @id @default(cuid())
-  slug               String   @unique
-  name               String
-  designation        String              // e.g. "Professor"
-  department         String              // "Mechanical Engineering" | "Mechatronics Engineering"
-  photoUrl           String?
-  bio                String?  @db.Text
-  email              String?
-  googleScholarUrl   String?
-  researchGateUrl    String?
-  linkedinUrl        String?
-  researchAreas      ResearchArea[]      // many-to-many
-  order              Int      @default(0)
-  status             ContentStatus @default(PUBLISHED)
+  id               String         @id @default(cuid())
+  slug             String         @unique
+  name             String
+  designation      String         // e.g. "Professor", "Assistant Professor"
+  department       String         // "Department of Mechanical Engineering" | "Department of Mechatronics Engineering"
+  photoUrl         String?
+  bio              String?        @db.Text
+  email            String?
+  googleScholarUrl String?
+  researchGateUrl  String?
+  linkedinUrl      String?
+  researchAreas    ResearchArea[]
+  order            Int            @default(0)
+  status           ContentStatus  @default(PUBLISHED)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model StudentMember {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  name           String
-  level          StudentLevel
-  program        String?             // e.g. "B.Sc. in Mechatronics Engineering"
-  batchOrYear    String?
-  photoUrl       String?
-  bio            String?  @db.Text
-  email          String?
+  id               String         @id @default(cuid())
+  slug             String         @unique
+  name             String
+  level            StudentLevel
+  program          String?        // e.g. "B.Sc. in Mechatronics Engineering"
+  batchOrYear      String?
+  photoUrl         String?
+  bio              String?        @db.Text
+  email            String?
   googleScholarUrl String?
-  linkedinUrl    String?
-  researchAreas  ResearchArea[]
-  order          Int      @default(0)
-  status         ContentStatus @default(PUBLISHED)
+  linkedinUrl      String?
+  researchAreas    ResearchArea[]
+  order            Int            @default(0)
+  status           ContentStatus  @default(PUBLISHED)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model ResearchArea {
-  id           String   @id @default(cuid())
-  slug         String   @unique
-  name         String
-  description  String   @db.Text
+  id            String          @id @default(cuid())
+  slug          String          @unique
+  name          String
+  description   String          @db.Text
   coverImageUrl String?
-  faculty      FacultyMember[]
-  students     StudentMember[]
-  projects     Project[]
-  publications Publication[]
+  faculty       FacultyMember[]
+  students      StudentMember[]
+  projects      Project[]
+  publications  Publication[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 model Project {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  title          String
-  summary        String
-  description    String   @db.Text        // rich text
-  status         ProjectStatus @default(ONGOING)
-  startDate      DateTime?
-  endDate        DateTime?
-  coverImageUrl  String?
-  researchAreas  ResearchArea[]
-  publications   Publication[]
-  galleryItems   GalleryItem[]
-  contentStatus  ContentStatus @default(PUBLISHED)
+  id            String          @id @default(cuid())
+  slug          String          @unique
+  title         String
+  summary       String
+  description   String          @db.Text        // Rich text content
+  status        ProjectStatus   @default(ONGOING)
+  startDate     DateTime?
+  endDate       DateTime?
+  coverImageUrl String?
+  researchAreas ResearchArea[]
+  publications  Publication[]
+  galleryItems  GalleryItem[]
+  contentStatus ContentStatus   @default(PUBLISHED)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 model Publication {
-  id            String   @id @default(cuid())
+  id            String          @id @default(cuid())
   title         String
-  authors       String            // "M. Roy, P. N. Roy, ..." simple string for v1
-  venue         String
+  authors       String          // Formatted citation author string
+  venue         String          // Journal / Conference name
   year          Int
   type          PublicationType
-  abstract      String?  @db.Text
+  abstract      String?         @db.Text
   doiOrLink     String?
   pdfUrl        String?
-  featured      Boolean  @default(false)
+  featured      Boolean         @default(false)
   researchAreas ResearchArea[]
-  project       Project? @relation(fields: [projectId], references: [id])
+  project       Project?        @relation(fields: [projectId], references: [id])
   projectId     String?
-  status        ContentStatus @default(PUBLISHED)
+  status        ContentStatus   @default(PUBLISHED)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }
 
 model NewsPost {
-  id           String   @id @default(cuid())
-  slug         String   @unique
-  title        String
-  excerpt      String
-  body         String   @db.Text     // rich text HTML
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  title         String
+  excerpt       String
+  body          String        @db.Text     // Rich text HTML
   coverImageUrl String?
-  publishedAt  DateTime @default(now())
-  status       ContentStatus @default(DRAFT)
+  publishedAt   DateTime      @default(now())
+  status        ContentStatus @default(PUBLISHED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Event {
-  id           String   @id @default(cuid())
-  slug         String   @unique
-  title        String
-  type         EventType
-  description  String   @db.Text
-  startAt      DateTime
-  endAt        DateTime?
-  location     String?
-  isOnline     Boolean  @default(false)
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  title         String
+  type          EventType
+  description   String        @db.Text
+  startAt       DateTime
+  endAt         DateTime?
+  location      String?
+  isOnline      Boolean       @default(false)
   coverImageUrl String?
-  status       ContentStatus @default(PUBLISHED)
+  status        ContentStatus @default(PUBLISHED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model GalleryItem {
-  id         String   @id @default(cuid())
-  imageUrl   String
-  caption    String?
-  category   String?
-  project    Project? @relation(fields: [projectId], references: [id])
-  projectId  String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  imageUrl  String
+  caption   String?
+  category  String?
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+  createdAt DateTime @default(now())
 }
 
-model SiteSetting {                  // singleton row, id fixed to "singleton"
-  id                String  @id @default("singleton")
-  labFullName        String
-  labShortName        String
-  tagline             String
-  missionStatement     String  @db.Text
-  address              String?
-  contactEmail          String?
-  phone                 String?
-  socialLinks           Json?         // { facebook, linkedin, youtube, ... }
-  heroImageUrl           String?
+model SiteSetting {
+  id               String   @id @default("singleton")
+  labFullName      String
+  labShortName     String
+  tagline          String
+  missionStatement String   @db.Text
+  address          String?
+  contactEmail     String?
+  phone            String?
+  socialLinks      Json?    // { googleScholar, researchGate, linkedin, facebook }
+  heroImageUrl     String?
+  updatedAt        DateTime @updatedAt
 }
 
 model ContactMessage {
-  id          String   @id @default(cuid())
-  name        String
-  email       String
-  subject     String?
-  message     String   @db.Text
-  read        Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 ```
 
-Notes:
-- `slug` fields power clean URLs (`/people/priyo-nath-roy`, `/research/robotics-and-control`).
-- `ContentStatus` (Draft/Published) gates visibility on the public site for News, Events, Publications, and Projects — dashboard users see both.
-- Junction tables for the many-to-many relations (`FacultyMember`↔`ResearchArea`, etc.) are implicit Prisma relation tables; make them explicit only if extra fields are ever needed on the relation itself.
+---
 
-## 5. Routing Map
+## 5. Authentication, Authorization & Security Architecture
 
-| Route | Access | Rendering |
-|---|---|---|
-| `/` | Public | Static + ISR |
-| `/about` | Public | Static |
-| `/people`, `/people/[slug]` | Public | Static + ISR |
-| `/research`, `/research/[areaSlug]` | Public | Static + ISR |
-| `/research/projects/[projectSlug]` | Public | Static + ISR |
-| `/publications` | Public | Static + ISR (revalidate on publish) |
-| `/news`, `/news/[slug]` | Public | Static + ISR |
-| `/events`, `/events/[slug]` | Public | Static + ISR |
-| `/gallery` | Public | Static + ISR |
-| `/join-us`, `/contact` | Public | Static |
-| `/login` | Public | Dynamic |
-| `/dashboard/*` | Admin/Editor only | Dynamic, no caching |
-| `/api/auth/*` | Auth provider handler | N/A |
+### 5.1 Defense-in-Depth Auth Guard Workflow
+1. **Login Portal (`/login`):** Validates credentials against the `User` table using cryptographically secure password comparison.
+2. **Session Cookie:** Generates an encrypted HTTP-only, `SameSite=Lax`, `Secure` session cookie containing user ID and role.
+3. **Layout-Level Guard (`src/app/(dashboard)/layout.tsx`):** Every administrative route invokes `requireUser()` on the server before rendering:
+   ```ts
+   const user = await requireUser();
+   if (!user) redirect('/login');
+   ```
+4. **Role-Based Guards (`requireAdmin()`):** Destructive actions, user creation, and site settings are gated strictly for `UserRole.ADMIN`.
+5. **Server Action Protection:** Every Server Action independently re-verifies `requireUser()` at runtime — never relying solely on layout protection.
 
-## 6. Auth & Authorization Flow
+---
 
-1. Lab member visits `/login`, submits credentials (or requests a magic link via Resend).
-2. Auth library validates against the `User` table (Prisma adapter) and issues a session.
-3. Every route under `(dashboard)` is wrapped by a **server-side** check in `layout.tsx` — call `requireUser()` from `lib/auth-guard.ts`, redirect to `/login` if absent.
-4. Admin-only screens (`/dashboard/users`, `/dashboard/settings`) additionally call `requireAdmin()`.
-5. **Do not rely on middleware alone** for protection — check session in the server component/action itself, since middleware-only protection has known bypass classes. Middleware may still be used for a fast redirect, but it is a UX nicety, not the security boundary.
-6. Server Actions that mutate data re-check the session/role themselves — never trust that "the page was protected" is enough, since actions can be invoked directly.
+## 6. Cloud Infrastructure & Object Storage (Neon S3)
 
-## 7. Rendering & Caching Strategy
+- **Database:** Neon Lakebase Postgres (`us-east-2`). Uses `DATABASE_URL` with pooled connection (`-pooler`) for serverless query execution, and `DIRECT_URL` for direct schema migrations.
+- **S3 Object Storage:** Configured via AWS S3 SDK with endpoint `AWS_ENDPOINT_URL_S3` and bucket `cairrl`.
+- **Public Read Access:** Media files (photos, covers, gallery assets) are uploaded with `public-read` ACL, providing persistent HTTPS URLs stored directly in database records.
 
-- Public pages: generate statically at build time where possible; use `revalidatePath()` / `revalidateTag()` from the relevant Server Action after a dashboard write so content updates without a full redeploy.
-- Dashboard pages: always dynamic (`export const dynamic = 'force-dynamic'`), no ISR — staff need to see live data.
-- Images: always through `next/image` with explicit `sizes`, sourced from Vercel Blob (or UploadThing) URLs.
+---
 
-## 8. Third-Party Integrations
+## 7. Rendering, Caching & Revalidation Strategy
 
-| Service | Purpose | Notes |
-|---|---|---|
-| Resend | Contact form notification email, magic-link email (if used) | Free tier sufficient at this scale |
-| Vercel Blob | Image/file storage for photos, cover images, PDFs | Store only the returned URL in Postgres |
-| Neon / Supabase Postgres | Database | Neon's branching is handy for preview deployments |
-| Google Scholar / ResearchGate | **Link-out only** — no scraping/automated import in v1 | Respect ToS; revisit if a v2 integration is wanted |
+- **Public Pages (RSC):** Rendered as React Server Components using `src/lib/db/queries.ts` with React `cache()` for request-level query deduplication.
+- **ISR & Dynamic Revalidation:** Server Actions trigger targeted revalidation upon mutations using `revalidatePath('/people')`, `revalidatePath('/publications')`, etc.
+- **Dashboard Pages:** Rendered dynamically with `export const dynamic = 'force-dynamic'` to guarantee lab administrators always see live database records.
 
-## 9. Environment Variables (`.env.example`)
+---
 
+## 8. Required Environment Variables (`.env.example`)
+
+```bash
+# Database Connections (Neon Lakebase Postgres)
+DATABASE_URL="postgresql://neondb_owner:***@ep-***-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require"
+DIRECT_URL="postgresql://neondb_owner:***@ep-***.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require"
+
+# S3 Object Storage (Neon Storage)
+AWS_ENDPOINT_URL_S3="https://br-***.storage.c-5.us-east-2.aws.neon.tech"
+AWS_ACCESS_KEY_ID="nak_live_***"
+AWS_SECRET_ACCESS_KEY="nsk_live_***"
+AWS_REGION="us-east-2"
+
+# Authentication & Application
+AUTH_SECRET="your-32-byte-random-auth-secret"
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 ```
-DATABASE_URL=
-DIRECT_URL=                 # if using a pooled Neon connection
-AUTH_SECRET=
-AUTH_URL=                   # e.g. http://localhost:3000 in dev
-RESEND_API_KEY=
-BLOB_READ_WRITE_TOKEN=
-NEXT_PUBLIC_SITE_URL=
-```
-
-Never commit `.env`. Keep `.env.example` in sync whenever a new variable is introduced (`Rules.md §6`).
-
-## 10. Deployment Topology
-
-- **Frontend + Server Actions + API routes:** Vercel (Production + Preview deployments per PR)
-- **Database:** Neon or Supabase Postgres, single production instance; a branch/preview DB for staging if budget allows
-- **File storage:** Vercel Blob, same account as hosting
-- **Email:** Resend, verified sending domain once the lab has one (fall back to Resend's shared domain during development)
-- **DNS:** points at whatever domain the lab settles on (KUET subdomain or a lab-owned domain) — not a build blocker per `PRD.md §10`

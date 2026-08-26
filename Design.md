@@ -1,118 +1,145 @@
 # Design.md
 
-**Project:** CAIRRL Lab Website
-**Last updated:** 2026-08-26
-
-This document defines the visual language of the site: color, type, spacing, components, imagery, and motion. Every visual decision made while implementing `Phases.md` should trace back to a token defined here — see `Rules.md §4`.
-
-> These are **proposed** design tokens, not an existing official CAIRRL/KUET brand guideline. If KUET or the lab later publishes formal brand colors/logo standards, reconcile this file against them before final launch.
+**Project:** CAIRRL Lab Website — Centre for Advanced Intelligent Robotics Research Laboratory  
+**Institution:** Khulna University of Engineering & Technology (KUET), Khulna, Bangladesh  
+**Status:** Comprehensive Visual Language & Design System v2.0 (100% Detailed)  
+**Last updated:** 2026-08-27  
 
 ---
 
-## 1. Design Principles
+## 1. Core Visual Identity & Design Philosophy
 
-1. **Credible before flashy.** This is an academic research lab, not a startup — CMU RI and GMU MARC both lean editorial and calm, not "SaaS landing page." Confidence comes from clarity and real content, not heavy animation.
-2. **Feels precise, like the work it represents.** Robotics/mechatronics is exact, structured, technical — the UI should feel the same way: clean grids, sharp alignment, restrained color use.
-3. **Honest about scale.** With 7 people today, the design must feel intentional and complete at low content density — not like an empty template waiting to be filled (see `PRD.md §11`).
-4. **Accessible by default,** not as an afterthought — every token here is chosen to clear WCAG AA on its intended background.
+CAIRRL Lab's visual language is engineered to communicate **academic rigor, robotic precision, and modern engineering authority**.
 
-## 2. Color Palette
+Unlike generic commercial landing pages or cluttered legacy university portals, CAIRRL adopts a refined editorial design language influenced by leading international robotics institutes (CMU Robotics Institute, GMU MARC):
 
-| Token | Hex | Usage |
-|---|---|---|
-| `ink` | `#0F172A` | Primary text, headings on light backgrounds |
-| `surface` | `#FFFFFF` | Page background |
-| `surface-muted` | `#F5F7FA` | Section backgrounds, card backgrounds, alternating sections |
-| `border` | `#E2E8F0` | Dividers, card borders, input borders |
-| `brand-navy` | `#101B33` | Primary brand color — header/footer, primary buttons, dark hero sections |
-| `brand-navy-hover` | `#0B1426` | Hover/active state of navy elements |
-| `accent-cyan` | `#0EA5C4` | Links, active nav item, highlighted stats, research-area tag default |
-| `accent-cyan-hover` | `#0B8AA6` | Hover state for cyan interactive elements |
-| `accent-green` | `#0F7A4D` | Secondary accent — used sparingly (badges, "Ongoing" project status, subtle nod to the national/institutional green common to Bangladeshi public universities) |
-| `muted-text` | `#475569` | Secondary text, captions, metadata (dates, authors) |
-| `success` | `#15803D` | Success toasts/states in the dashboard |
-| `warning` | `#B45309` | Warning toasts/states |
-| `error` | `#B91C1C` | Error toasts/states, destructive actions |
+1. **Precision & Engineering Geometry:** Clean structural grids, crisp card boundaries, subtle linear grid backdrops, and monospaced data accents reflect the exactness of robotics and control theory.
+2. **Authoritative Academic Palette:** Deep navy (`#101B33`) serves as the foundational anchor, paired with high-clarity electric cyan (`#0EA5C4`) for interactive focus and emerald green (`#0F7A4D`) for status indicators.
+3. **Intentional Density:** The layout is crafted to look complete, balanced, and confident with the founding 7-member team, effortlessly accommodating rapid 5-10x roster expansion without layout degradation.
+4. **Accessible & Responsive by Design:** WCAG 2.1 AA compliant color contrast, clear typographic hierarchy, visible focus rings, and seamless fluidity from ultra-wide displays down to mobile viewports.
 
-**Usage guidance**
-- `brand-navy` is the dominant identity color — nav bar, footer, hero backgrounds, primary CTA buttons. Use it the way CMU RI uses its scarlet: as *the* signature, not one of many.
-- `accent-cyan` is the single interactive/highlight color — links, active states, chart accents, research-area tag default color. Don't introduce a second "pop" color competing with it.
-- `accent-green` is a deliberately minor secondary accent (status badges, an occasional divider) — it should never compete with cyan for attention in the same view.
-- Never use `accent-cyan` or `accent-green` text on `surface-muted` at small sizes without checking contrast; prefer `ink` for body text everywhere.
+---
 
-**Dark mode (v1.5, optional):** invert `surface`↔`ink` using CSS variables so `brand-navy` and `accent-cyan` still work as accents on a near-black background (`#0B1220`). Not required for launch, but the token structure (CSS variables, not hardcoded Tailwind colors) should make it a follow-on task, not a rebuild.
+## 2. Complete Color Token Specification
 
-## 3. Typography
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                          CAIRRL Color Palette                          │
+│                                                                        │
+│   [ brand-navy ]     [ accent-cyan ]     [ accent-green ]   [ ink ]    │
+│      #101B33            #0EA5C4             #0F7A4D         #0F172A    │
+│                                                                        │
+│   [ surface ]        [ surface-muted ]   [ border ]         [ muted ]  │
+│      #FFFFFF            #F5F7FA             #E2E8F0         #475569    │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
-| Role | Font | Fallback stack |
-|---|---|---|
-| Headings | **Space Grotesk** | `ui-sans-serif, system-ui, sans-serif` |
-| Body / UI | **Inter** | `ui-sans-serif, system-ui, sans-serif` |
-| Data / labels / stats | **JetBrains Mono** | `ui-monospace, SFMono-Regular, monospace` |
-
-Load all three via `next/font/google` (self-hosted by Next.js, no external request, no layout shift).
-
-- **Space Grotesk** for H1–H4: geometric and slightly technical, distinct from generic "Inter everywhere" academic sites, without tipping into a flashy display face.
-- **Inter** for body copy, nav, buttons, form labels — maximum legibility for long bios and abstracts.
-- **JetBrains Mono** used sparingly: the homepage stats strip (e.g., `02 FACULTY`, `07 MEMBERS`), publication years in the list view, event dates. Gives a technical, lab-notebook texture without hurting readability.
-
-### Type scale
-
-| Token | Size / Line-height | Weight | Example use |
+| Token | Hex Value | CSS Variable | Semantic Usage |
 |---|---|---|---|
-| `display` | 3rem / 1.1 (48px) | 600 | Home hero headline |
-| `h1` | 2.25rem / 1.2 (36px) | 600 | Page titles |
-| `h2` | 1.875rem / 1.25 (30px) | 600 | Section headings |
-| `h3` | 1.5rem / 1.3 (24px) | 600 | Card/subsection headings |
-| `h4` | 1.25rem / 1.4 (20px) | 500 | Minor headings |
-| `body-lg` | 1.125rem / 1.6 (18px) | 400 | Intro paragraphs |
-| `body` | 1rem / 1.6 (16px) | 400 | Default body text |
-| `small` | 0.875rem / 1.5 (14px) | 400 | Captions, metadata |
-| `mono-label` | 0.8125rem / 1.4 (13px), uppercase, tracked | 500 | Stats, tags, dates |
+| `brand-navy` | `#101B33` | `--brand-navy` | Dominant brand anchor: Dark hero sections, main navigation bar, footer, primary buttons, major CTA backgrounds. |
+| `brand-navy-hover` | `#0B1426` | `--brand-navy-hover` | Interactive hover/active state for primary navy elements. |
+| `accent-cyan` | `#0EA5C4` | `--accent-cyan` | Interactive primary accent: Hyperlinks, active navigation indicators, stats highlights, research area badges. |
+| `accent-cyan-hover` | `#0B8AA6` | `--accent-cyan-hover` | Hover state for buttons and links using cyan styling. |
+| `accent-green` | `#0F7A4D` | `--accent-green` | Secondary status accent: "Ongoing" project badges, verified credentials, green indicators. |
+| `surface` | `#FFFFFF` | `--surface` | Primary page canvas, card backgrounds, modal dialog containers. |
+| `surface-muted` | `#F5F7FA` | `--surface-muted` | Alternating section backgrounds, data card backdrops, subtle container fills. |
+| `border` | `#E2E8F0` | `--border` | Dividers, card borders, data table row dividers, input field borders. |
+| `ink` | `#0F172A` | `--ink` | Primary typography: Page headlines, card titles, high-emphasis text on light backgrounds. |
+| `muted-text` | `#475569` | `--muted-text` | Secondary typography: Publication abstracts, meta dates, author lists, subheadings. |
+| `success` | `#15803D` | `--success` | Form submission success states, positive system toasts. |
+| `warning` | `#B45309` | `--warning` | Unsaved change warnings, pending status tags. |
+| `error` | `#B91C1C` | `--error` | Form validation error messages, destructive deletion dialogs. |
 
-Scale down `display`→2rem and `h1`→1.75rem on mobile breakpoints.
+---
 
-## 4. Spacing & Layout
+## 3. Typography & Font Hierarchy
 
-- Base unit: **4px**, using Tailwind's default spacing scale (`1` = 4px … `4` = 16px … `8` = 32px, etc.) — no custom spacing scale needed.
-- Content container: max-width `1280px` (Tailwind `max-w-7xl`), horizontal padding `1.5rem` mobile / `2rem` desktop.
-- Section vertical rhythm: `py-16` mobile, `py-24` desktop between major homepage sections.
-- Breakpoints: Tailwind defaults — `sm` 640px, `md` 768px, `lg` 1024px, `xl` 1280px, `2xl` 1536px.
-- Grid: 12-column implicit via Tailwind grid utilities; people/project/news cards typically 1 col mobile → 2 col tablet → 3–4 col desktop.
+The typography system pairs geometric character with reading clarity using three self-hosted Google fonts via `next/font/google`:
 
-## 5. Components
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Typography Hierarchy                            │
+│                                                                        │
+│  HEADINGS: Space Grotesk (Geometric, Technical, Confident)             │
+│  BODY / UI: Inter (Clean, Maximum Legibility, High Neutrality)         │
+│  DATA / STATS: JetBrains Mono (Lab Notebook Precision, Citations)      │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
-| Component | Style notes |
-|---|---|
-| **Buttons** | Primary: `brand-navy` fill, white text, `rounded-md`. Secondary: outline in `border`, `ink` text. Ghost: text-only, `accent-cyan` on hover. All buttons use `body` weight 500, `px-5 py-2.5`. |
-| **Cards** (person, project, news, event) | `surface` background, `border` 1px, `rounded-lg`, subtle shadow on hover only (`shadow-sm` → `shadow-md`), consistent image aspect ratio per card type (16:9 for news/project covers, 1:1 for people avatars). |
-| **Tags / badges** (research areas, publication type, project status) | Pill shape, `text-xs`, `accent-cyan`-on-`surface-muted` by default; `accent-green` variant reserved for "Ongoing" project status. |
-| **Navbar** | Sticky, `surface` background with `border-b`, `brand-navy` logo/wordmark, `accent-cyan` underline on active link. Collapses to a slide-in drawer under `md`. |
-| **Footer** | `brand-navy` background, white/`surface-muted` text, three-column layout (Quick Links / Contact / Social+Scholar), matching the CMU RI pattern of surfacing outreach/contact/giving-equivalent links. |
-| **Hero** | Full-width, `brand-navy` background or a photo with a navy duotone overlay (`brand-navy` at ~70% opacity) so white headline text stays legible over any photo. |
-| **Data tables** (dashboard) | shadcn/ui `Table`, zebra-free (use `border` divider rows instead), sticky header on scroll, row actions right-aligned. |
-| **Forms** (dashboard + contact) | shadcn/ui `Input`/`Textarea`/`Select`, `accent-cyan` focus ring, inline Zod error text in `error` color directly beneath the field. |
-| **Empty states** | Icon (lucide, `muted-text`) + one line of copy + a primary action where relevant (e.g., "No publications yet — Add publication"). Never a bare blank area. |
+### Typographic Scale
 
-## 6. Imagery & Iconography
+| Token | Font Family | Size / Line-Height | Weight | Example Application |
+|---|---|---|---|---|
+| `display` | Space Grotesk | `3.25rem` (52px) / 1.1 | 600 SemiBold | Homepage hero main headline |
+| `h1` | Space Grotesk | `2.25rem` (36px) / 1.2 | 600 SemiBold | Primary page title (`About`, `People`, `Publications`) |
+| `h2` | Space Grotesk | `1.875rem` (30px) / 1.25 | 600 SemiBold | Major section headings on pages |
+| `h3` | Space Grotesk | `1.25rem` (20px) / 1.3 | 600 SemiBold | Individual card titles, project names |
+| `h4` | Space Grotesk | `1.125rem` (18px) / 1.4 | 500 Medium | Minor subsection titles, author names |
+| `body-lg` | Inter | `1.125rem` (18px) / 1.6 | 400 Regular | Hero subtitles, introductory narrative lead-ins |
+| `body` | Inter | `1rem` (16px) / 1.6 | 400 Regular | General body paragraphs, bio text, mission statements |
+| `body-sm` | Inter | `0.875rem` (14px) / 1.5 | 400 Regular | Metadata, publication abstracts, table contents |
+| `mono-stat` | JetBrains Mono | `2rem` (32px) / 1.0 | 700 Bold | Numeric metric counter (e.g. `02`, `07`, `18`) |
+| `mono-label` | JetBrains Mono | `0.75rem` (12px) / 1.4 | 500 Medium | Uppercase tracking tags (e.g. `FACULTY`, `JOURNAL`) |
 
-- **Icons:** `lucide-react` exclusively, `1.5px` stroke, sized to match adjacent text (typically 20–24px).
-- **Photography:** real lab/people/robot photos once available; until then, use clearly-labeled placeholders (per `Rules.md §8`) rather than generic stock robot imagery that could be mistaken for real lab work.
-- **Hero/cover treatment:** apply a `brand-navy` duotone/gradient overlay behind any text-over-image composition, mirroring the legibility technique CMU RI uses on its homepage feature imagery.
-- **Aspect ratios:** keep them consistent per content type so grids stay tidy — 1:1 for people, 16:9 for news/project/event covers, free-form only in the Gallery.
+---
 
-## 7. Motion
+## 4. Spacing, Grid & Responsive Layout System
 
-- Transitions: `150–250ms`, `ease-out`, applied to color/opacity/transform only — no bouncing, no parallax scrolling.
-- Page-level motion stays minimal: a subtle fade/slide-up on section entry is optional and should never delay content becoming readable.
-- Respect `prefers-reduced-motion: reduce` — disable non-essential transitions entirely for users who request it (`Rules.md §11`).
+- **Standard Container:** `max-w-7xl` (`1280px`) centered horizontally with `px-4 sm:px-6 lg:px-8`.
+- **Vertical Section Rhythm:** `py-16 md:py-20 lg:py-24` between major content sections.
+- **Card Grids:**
+  - Faculty Grid: 2 columns on tablet/desktop (`grid-cols-1 md:grid-cols-2 gap-6`).
+  - Student Grid: 3–4 columns (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6`).
+  - Research Focus Areas: 3 columns (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6`).
+  - Publications List: Full-width stacked cards with responsive internal flex layouts.
+  - Gallery Grid: Dynamic CSS column masonry (`columns-1 sm:columns-2 lg:columns-3 gap-4`).
 
-## 8. Accessibility Notes
+---
 
-- All text/background pairings above are chosen to clear **WCAG AA** (4.5:1 for body text, 3:1 for large text/UI components). Re-check contrast if any token is adjusted.
-- Never convey status (e.g., "Ongoing" vs. "Completed" project) by color alone — always pair the badge color with a text label.
-- Focus states use a visible `accent-cyan` ring (`ring-2 ring-accent-cyan ring-offset-2`) on every interactive element, never `outline-none` without a replacement.
+## 5. UI Component Blueprints
 
-## 9. Homepage Mood Reference
+### 5.1 Hero Section
+- High-contrast `brand-navy` background.
+- Subtle geometric grid pattern with 4% opacity (`linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px)`).
+- Ambient blurred glow orbs (`bg-accent-cyan/10 blur-3xl`).
+- Institutional subtitle with JetBrains Mono tracking.
+- Prominent CTA buttons with rounded-lg geometry and micro-hover lift.
 
-The homepage should read, in order: **hero → quick stats → featured research/latest news → upcoming events (if any) → footer** — the same rhythm as CMU RI's "featured story, then news grid, then events sidebar" pattern, scaled down to CAIRRL's actual content volume so nothing feels padded. Prefer one well-composed featured item over a large empty grid.
+### 5.2 Header / Navigation Bar
+- Sticky positioning (`sticky top-0 z-50`) with backdrop blur and bottom border.
+- Bold lab wordmark in `brand-navy` linking to root.
+- Desktop navigation links with active state indicator (accent-cyan underline badge).
+- Responsive mobile hamburger menu triggering an off-canvas drawer with smooth slide transition.
+
+### 5.3 Researcher Cards (`PersonCard`)
+- High-resolution photo support or deterministic initials gradient container (`from-cyan-600 to-blue-700`, etc.).
+- Clear role tag (`FACULTY`, `GRADUATE RESEARCHER`, `UNDERGRADUATE RESEARCHER`).
+- Clean academic links (Google Scholar, ResearchGate, LinkedIn, Email) with Lucide vector icons.
+- Tag list of associated research areas with hover links.
+
+### 5.4 Publications Catalogue (`PublicationList`)
+- Real-time search bar with instant query filtering.
+- Pill toggle filters for Publication Type, Year, and Research Area.
+- Expandable abstract drawer with smooth height transition.
+- Direct external action links for DOI, PDF, and one-click BibTeX copy to clipboard.
+
+### 5.5 Masonry Gallery & Lightbox Viewer (`GalleryGrid`)
+- Pure CSS masonry layout preventing awkward grid gaps.
+- Category filter pills (`All`, `Facilities`, `Demos`, `Events`).
+- Fullscreen modal lightbox with keyboard controls (`ArrowRight`, `ArrowLeft`, `Escape`), swipe support, captions, and photo counter.
+
+### 5.6 Footer
+- 3-column authoritative layout matching CMU RI standards:
+  - Column 1: CAIRRL Lab overview, institutional KUET affiliation, founding year.
+  - Column 2: Quick navigation links to all main sections.
+  - Column 3: Contact coordinates, physical address, and academic profiles.
+- Bottom copyright bar with university credit and administrative login shortcut.
+
+---
+
+## 6. Motion & Micro-Interactions
+
+- **Timing Function:** `cubic-bezier(0.16, 1, 0.3, 1)` (smooth ease-out).
+- **Duration Scale:** `150ms` (hover color/border), `250ms` (card elevation / modal zoom), `400ms` (scroll-in fade).
+- **Scroll Entrance:** Subtly translateY(`12px`) to `0px` with opacity `0` to `1` using Intersection Observer.
+- **Accessibility:** Automatically disable animations when `prefers-reduced-motion: reduce` is detected.

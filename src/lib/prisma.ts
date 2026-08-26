@@ -1,28 +1,15 @@
-/**
- * Prisma Client singleton for Next.js App Router per Architecture.md §3.
- * Gracefully provides client instance when database schema is generated.
- */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-let prismaClientInstance: any;
+import { PrismaClient } from '@prisma/client';
 
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaClient } = require('@prisma/client');
-  const globalForPrisma = globalThis as unknown as {
-    prisma: any;
-  };
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
-  prismaClientInstance =
-    globalForPrisma.prisma ??
-    new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-    });
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+  });
 
-  if (process.env.NODE_ENV !== 'production') {
-    globalForPrisma.prisma = prismaClientInstance;
-  }
-} catch {
-  prismaClientInstance = {} as any;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
 }
-
-export const prisma = prismaClientInstance;

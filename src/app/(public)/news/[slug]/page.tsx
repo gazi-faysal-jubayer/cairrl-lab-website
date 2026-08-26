@@ -1,19 +1,16 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, User } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Calendar } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { Container } from '@/components/shared';
 import { AnimatedSection } from '@/components/shared/animated-section';
-import { newsPosts } from '@/lib/data/news-events-data';
-import { siteConfig } from '@/lib/data/site-data';
+import { getNewsPostBySlug, getAllNewsSlugs } from '@/lib/db/queries';
 import { cn } from '@/lib/utils';
 
-export function generateStaticParams() {
-  return newsPosts.map((post) => ({
-    slug: post.slug,
-  }));
+export async function generateStaticParams() {
+  const slugs = await getAllNewsSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -22,91 +19,61 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = newsPosts.find((p) => p.slug === slug);
-  if (!post) return { title: 'News Post Not Found' };
-
-  return {
-    title: post.title,
-    description: post.excerpt,
-  };
+  const post = await getNewsPostBySlug(slug);
+  if (!post) return { title: 'Post Not Found' };
+  return { title: post.title, description: post.excerpt.slice(0, 160) };
 }
 
-export default async function NewsPostDetailPage({
+export default async function NewsDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = newsPosts.find((p) => p.slug === slug);
+  const post = await getNewsPostBySlug(slug);
   if (!post) notFound();
 
   return (
     <>
-      {/* ─── Hero ─── */}
       <section className="bg-brand-navy py-16 md:py-20">
-        <Container className="max-w-4xl">
+        <Container>
           <Link
             href="/news"
-            className="mb-6 inline-flex items-center gap-1.5 text-sm text-white/60 transition-colors duration-150 hover:text-accent-cyan"
+            className="mb-6 inline-flex items-center gap-1 text-sm text-white/60 transition-colors hover:text-accent-cyan"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to News & Events
+            Back to News
           </Link>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Badge
-              variant="secondary"
-              className="bg-accent-cyan/20 text-xs font-semibold text-accent-cyan"
-            >
-              {post.category}
-            </Badge>
-
-            <span className="flex items-center gap-1.5 text-xs text-white/60">
-              <Calendar className="h-3.5 w-3.5 text-accent-cyan" />
-              {post.publishedAt}
-            </span>
-
-            <span className="text-white/40">•</span>
-
-            <span className="flex items-center gap-1.5 text-xs text-white/60">
-              <User className="h-3.5 w-3.5 text-accent-cyan" />
-              {post.authorName}
-            </span>
+          <div className="flex items-center gap-2 text-sm text-white/50">
+            <Calendar className="h-4 w-4" />
+            {new Date(post.publishedAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
           </div>
-
-          <h1 className="mt-4 font-heading text-3xl font-semibold leading-tight text-white md:text-4xl">
+          <h1 className="mt-4 font-heading text-3xl font-semibold text-white md:text-4xl">
             {post.title}
           </h1>
-
-          <p className="mt-4 text-base leading-relaxed text-white/80 md:text-lg">
-            {post.excerpt}
-          </p>
+          <p className="mt-4 max-w-3xl text-base text-white/70">{post.excerpt}</p>
         </Container>
       </section>
 
-      {/* ─── Article Body ─── */}
       <section className="py-16 md:py-24">
-        <Container className="max-w-3xl">
+        <Container>
           <AnimatedSection>
-            <article className="prose prose-slate max-w-none text-ink [&_a]:font-medium [&_a]:text-accent-cyan [&_a]:underline hover:[&_a]:text-accent-cyan-hover [&_p]:mb-5 [&_p]:text-base [&_p]:leading-relaxed [&_p]:text-muted-text">
-              <div dangerouslySetInnerHTML={{ __html: post.body }} />
-            </article>
+            <div className="mx-auto max-w-3xl">
+              <div
+                className="prose prose-gray max-w-none leading-relaxed text-muted-text"
+                dangerouslySetInnerHTML={{ __html: post.body }}
+              />
 
-            {/* Bottom bar */}
-            <div className="mt-12 flex flex-wrap items-center justify-between border-t border-border pt-6">
-              <div className="text-xs text-muted-text">
-                Published by <strong className="text-ink">{post.authorName}</strong> — {siteConfig.name}
+              <div className="mt-12">
+                <Link href="/news" className={cn(buttonVariants({ variant: 'outline' }))}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to News
+                </Link>
               </div>
-
-              <Link
-                href="/news"
-                className={cn(
-                  buttonVariants({ variant: 'outline', size: 'sm' })
-                )}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to All News
-              </Link>
             </div>
           </AnimatedSection>
         </Container>

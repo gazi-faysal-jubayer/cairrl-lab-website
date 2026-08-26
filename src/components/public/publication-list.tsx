@@ -8,29 +8,63 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  publications,
-  publicationTypeLabels,
-} from '@/lib/data/publications-data';
-import { researchAreas } from '@/lib/data/research-data';
 import { cn } from '@/lib/utils';
 
-export function PublicationList() {
+export type PublicationItem = {
+  id: string;
+  title: string;
+  authors: string;
+  venue: string;
+  year: number;
+  type: string;
+  abstract: string | null;
+  doiOrLink: string | null;
+  pdfUrl: string | null;
+  featured: boolean;
+  researchAreas: { id: string; name: string; slug: string }[];
+};
+
+export type ResearchAreaFilter = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+const publicationTypeLabels: Record<string, string> = {
+  JOURNAL: 'Journal Article',
+  CONFERENCE: 'Conference Paper',
+  THESIS: 'Thesis / Dissertation',
+  PREPRINT: 'Preprint / arXiv',
+  BOOK_CHAPTER: 'Book Chapter',
+};
+
+type PublicationListProps = {
+  publications: PublicationItem[];
+  researchAreas: ResearchAreaFilter[];
+};
+
+export function PublicationList({
+  publications,
+  researchAreas,
+}: PublicationListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const [selectedYear, setSelectedYear] = useState<string>('ALL');
   const [selectedArea, setSelectedArea] = useState<string>('ALL');
   const [expandedAbstracts, setExpandedAbstracts] = useState<Record<string, boolean>>({});
+  const [copiedBibtexId, setCopiedBibtexId] = useState<string | null>(null);
 
   // Unique years in the dataset (sorted descending)
   const availableYears = useMemo(() => {
     const years = Array.from(new Set(publications.map((p) => p.year)));
     return years.sort((a, b) => b - a);
-  }, []);
+  }, [publications]);
 
   // Filtered publications
   const filteredPublications = useMemo(() => {
@@ -57,19 +91,35 @@ export function PublicationList() {
       }
 
       // Filter by Research Area
-      if (selectedArea !== 'ALL' && !pub.researchAreaSlugs.includes(selectedArea)) {
+      if (
+        selectedArea !== 'ALL' &&
+        !pub.researchAreas.some((a) => a.slug === selectedArea)
+      ) {
         return false;
       }
 
       return true;
     });
-  }, [searchQuery, selectedType, selectedYear, selectedArea]);
+  }, [publications, searchQuery, selectedType, selectedYear, selectedArea]);
 
   const toggleAbstract = (id: string) => {
     setExpandedAbstracts((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
+  };
+
+  const copyBibtex = (pub: PublicationItem) => {
+    const bibtexKey = `${pub.authors.split(',')[0].trim().replace(/\s+/g, '')}${pub.year}`;
+    const bibtex = `@article{${bibtexKey},
+  title={${pub.title}},
+  author={${pub.authors}},
+  journal={${pub.venue}},
+  year={${pub.year}}${pub.doiOrLink ? `,\n  url={${pub.doiOrLink}}` : ''}
+}`;
+    navigator.clipboard.writeText(bibtex);
+    setCopiedBibtexId(pub.id);
+    setTimeout(() => setCopiedBibtexId(null), 2000);
   };
 
   const hasActiveFilters =
@@ -138,38 +188,40 @@ export function PublicationList() {
         </div>
 
         {/* Research Area Quick Filter Pills */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
-          <span className="text-xs font-semibold text-muted-text">
-            Filter Area:
-          </span>
-          <button
-            type="button"
-            onClick={() => setSelectedArea('ALL')}
-            className={cn(
-              'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-              selectedArea === 'ALL'
-                ? 'bg-brand-navy text-white'
-                : 'bg-surface-muted text-ink hover:bg-border'
-            )}
-          >
-            All Areas
-          </button>
-          {researchAreas.map((area) => (
+        {researchAreas.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+            <span className="text-xs font-semibold text-muted-text">
+              Filter Area:
+            </span>
             <button
-              key={area.slug}
               type="button"
-              onClick={() => setSelectedArea(area.slug)}
+              onClick={() => setSelectedArea('ALL')}
               className={cn(
                 'rounded-full px-3 py-1 text-xs font-medium transition-colors',
-                selectedArea === area.slug
-                  ? 'bg-accent-cyan text-white'
+                selectedArea === 'ALL'
+                  ? 'bg-brand-navy text-white'
                   : 'bg-surface-muted text-ink hover:bg-border'
               )}
             >
-              {area.name}
+              All Areas
             </button>
-          ))}
-        </div>
+            {researchAreas.map((area) => (
+              <button
+                key={area.id}
+                type="button"
+                onClick={() => setSelectedArea(area.slug)}
+                className={cn(
+                  'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                  selectedArea === area.slug
+                    ? 'bg-accent-cyan text-white'
+                    : 'bg-surface-muted text-ink hover:bg-border'
+                )}
+              >
+                {area.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Status bar */}
         <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-text">
@@ -196,9 +248,6 @@ export function PublicationList() {
         <div className="space-y-4">
           {filteredPublications.map((pub) => {
             const isAbstractExpanded = !!expandedAbstracts[pub.id];
-            const matchedAreas = researchAreas.filter((a) =>
-              pub.researchAreaSlugs.includes(a.slug)
-            );
 
             return (
               <article
@@ -211,7 +260,7 @@ export function PublicationList() {
                       variant="secondary"
                       className="bg-brand-navy/10 font-mono text-xs text-brand-navy"
                     >
-                      {publicationTypeLabels[pub.type]}
+                      {publicationTypeLabels[pub.type] ?? pub.type}
                     </Badge>
                     <span className="font-mono text-xs font-bold text-accent-cyan">
                       {pub.year}
@@ -228,9 +277,9 @@ export function PublicationList() {
 
                   {/* Research areas */}
                   <div className="flex flex-wrap gap-1.5">
-                    {matchedAreas.map((area) => (
+                    {pub.researchAreas.map((area) => (
                       <span
-                        key={area.slug}
+                        key={area.id}
                         className="rounded bg-surface-muted px-2 py-0.5 text-xs font-medium text-muted-text"
                       >
                         {area.name}
@@ -248,17 +297,17 @@ export function PublicationList() {
                   <span className="italic text-ink/80">{pub.venue}</span>
                 </p>
 
-                {/* Collapsible Abstract */}
-                {pub.abstract && (
-                  <div className="mt-3">
-                    {isAbstractExpanded ? (
-                      <div className="mt-2 rounded-lg bg-surface-muted p-4 text-sm leading-relaxed text-muted-text">
-                        <p className="font-semibold text-ink">Abstract:</p>
-                        <p className="mt-1">{pub.abstract}</p>
-                      </div>
-                    ) : null}
+                {/* Collapsible Abstract & Actions */}
+                <div className="mt-3">
+                  {pub.abstract && isAbstractExpanded ? (
+                    <div className="mt-2 rounded-lg bg-surface-muted p-4 text-sm leading-relaxed text-muted-text">
+                      <p className="font-semibold text-ink">Abstract:</p>
+                      <p className="mt-1">{pub.abstract}</p>
+                    </div>
+                  ) : null}
 
-                    <div className="mt-3 flex flex-wrap items-center gap-4">
+                  <div className="mt-3 flex flex-wrap items-center gap-4">
+                    {pub.abstract && (
                       <button
                         type="button"
                         onClick={() => toggleAbstract(pub.id)}
@@ -276,21 +325,40 @@ export function PublicationList() {
                           </>
                         )}
                       </button>
+                    )}
 
-                      {pub.doiOrLink && (
-                        <a
-                          href={pub.doiOrLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-accent-cyan hover:underline"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          <span>Publication / Scholar Source</span>
-                        </a>
+                    {pub.doiOrLink && (
+                      <a
+                        href={pub.doiOrLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-accent-cyan hover:underline"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        <span>Source / DOI</span>
+                      </a>
+                    )}
+
+                    {/* BibTeX Copy Button */}
+                    <button
+                      type="button"
+                      onClick={() => copyBibtex(pub)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-muted-text hover:text-accent-cyan"
+                    >
+                      {copiedBibtexId === pub.id ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-accent-green" />
+                          <span className="text-accent-green">BibTeX Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          <span>BibTeX</span>
+                        </>
                       )}
-                    </div>
+                    </button>
                   </div>
-                )}
+                </div>
               </article>
             );
           })}

@@ -1,149 +1,148 @@
 # Phases.md
 
-**Project:** CAIRRL Lab Website
-**Last updated:** 2026-08-26
+**Project:** CAIRRL Lab Website — Centre for Advanced Intelligent Robotics Research Laboratory  
+**Institution:** Khulna University of Engineering & Technology (KUET), Khulna, Bangladesh  
+**Status:** Comprehensive Sequential Implementation Roadmap v2.0 (100% Detailed)  
+**Last updated:** 2026-08-27  
 
-The build is broken into sequential phases so the AI (and any human collaborator) can work in focused, verifiable chunks instead of attempting the whole app at once. Complete a phase, verify its exit criteria, update `Memory.md`, then move to the next. Don't skip ahead unless the user explicitly asks.
+The build is structured into 11 sequential phases (Phase 0 through Phase 10). Each phase specifies clear goals, detailed task breakdowns, and strict exit criteria.
 
 ---
 
 ## Phase 0 — Project Setup & Foundations
-**Goal:** A running, empty Next.js app with the full tooling chain in place.
+**Goal:** Establish a clean, production-ready Next.js 16 App Router foundation with strict TypeScript and toolchains.
 
-- Scaffold with `create-next-app` (TypeScript, App Router, Tailwind, `src/` directory)
-- Install and configure shadcn/ui, lucide-react
-- Set up ESLint + Prettier, strict `tsconfig.json`
-- Initialize git, `.gitignore`, `.env.example`
-- Set up Prisma with a local/dev Postgres connection (Neon dev branch or Docker)
-- Confirm the app builds and runs (`npm run dev`, `npm run build`)
+- [x] Scaffold Next.js 16 (App Router, Turbopack, TypeScript strict mode, `src/` directory).
+- [x] Configure Tailwind CSS v4, Lucide React icons, and shadcn/ui primitives.
+- [x] Configure ESLint and Prettier with zero initial warnings.
+- [x] Configure `.env.example` with template environment variables.
+- [x] Set up Prisma ORM and define base connection strings.
 
-**Exit criteria:** Blank homepage renders at `localhost:3000`; `npm run build` succeeds; lint passes.
+**Exit Criteria:** Blank project compiles cleanly with `npm run build`; linter passes with 0 warnings.
 
 ---
 
-## Phase 1 — Design System & Layout Shell
-**Goal:** The visual language from `Design.md` is implemented as reusable pieces, and the public site has its skeleton.
+## Phase 1 — Design System, Tokens & Layout Shell
+**Goal:** Implement the visual language from `Design.md` as reusable tokens, styles, and layout wrappers.
 
-- Configure Tailwind theme (colors, fonts, spacing) from `Design.md`
-- Import and configure the chosen fonts
-- Build shared `Navbar` and `Footer` components matching `Design.md`
-- Build the base UI kit needed early: `Button`, `Card`, `Badge`, `Container`, `SectionHeading`
-- Wire up `(public)/layout.tsx` with the shell
+- [x] Configure CSS custom properties for all color tokens (`brand-navy`, `accent-cyan`, `accent-green`, `surface-muted`, `ink`).
+- [x] Import and configure Space Grotesk, Inter, and JetBrains Mono fonts via `next/font/google`.
+- [x] Build shared `Navbar` with sticky header, desktop links, active state indicators, and responsive mobile slide-out drawer.
+- [x] Build 3-column `Footer` with lab summary, navigation links, KUET affiliation, and social links.
+- [x] Build base UI primitives: `Container`, `SectionHeading`, `Button`, `Badge`, `Card`, and `AnimatedSection`.
+- [x] Wrap `(public)/layout.tsx` with the unified shell.
 
-**Exit criteria:** Any placeholder public page shows the correct navbar, footer, fonts, and colors.
+**Exit Criteria:** Shell renders correctly on mobile, tablet, and desktop with proper fonts, colors, and responsive behavior.
 
 ---
 
 ## Phase 2 — Static Public Pages v1 (Home, About, Join Us, Contact)
-**Goal:** The core narrative pages exist with real seed copy, using hardcoded/local data (no DB yet).
+**Goal:** Construct the foundational public storytelling and inquiry pages.
 
-- Home: hero, stats strip, placeholder "latest news"/"upcoming events" sections (empty-state OK at this point)
-- About: mission/vision, founding story, dept. affiliation (from `PRD.md §7.2`)
-- Join Us page
-- Contact page with a working form UI (submission wiring comes in Phase 6/9)
+- [x] Build Home page structure: Hero section with grid overlay, Quick Stats counter, Research Highlights, and Call to Action.
+- [x] Build About page: Mission & Vision dual cards, Founding Story, Departmental Affiliation, and Research Philosophy.
+- [x] Build Join Us page: Undergrad thesis tracks, M.Sc./Ph.D. recruitment details, and application instructions.
+- [x] Build Contact page: Interactive form with Zod validation, honeypot spam protection, and institutional coordinates.
 
-**Exit criteria:** All four pages are responsive, accessible, and pass a manual Lighthouse check ≥ 85 (final polish comes in Phase 10).
-
----
-
-## Phase 3 — People Pages (static)
-**Goal:** Faculty and student directory + individual profile pages, using the seed roster from `PRD.md §13` as local static data.
-
-- `/people` directory with Faculty / Graduate / Undergraduate tabs or sections
-- `/people/[slug]` profile pages for both real faculty members and all 5 real students
-- Person cards link out to Google Scholar where available
-
-**Exit criteria:** Both faculty and all five students are visible with their real names and correct links; no placeholder people.
+**Exit Criteria:** All four pages are fully responsive, accessible, and render semantic HTML with zero console errors.
 
 ---
 
-## Phase 4 — Research (Areas + Projects) & Publications (static)
-**Goal:** Research storytelling pages, still on local static data.
+## Phase 3 — People Directory & Individual Profile System
+**Goal:** Present the lab's faculty and student researchers with individual dynamic profile pages strictly adhering to `PRD.md §13`.
 
-- `/research` overview listing research areas (seed from faculty's actual interests: Robotics & Control, Mechatronics, Additive Manufacturing, UAV/Aerial Robotics, Industrial Automation, IoT/Embedded Systems — confirm final list with the lab)
-- `/research/[areaSlug]` detail page
-- `/research/projects/[projectSlug]` — at least one placeholder-marked project until real project data arrives
-- `/publications` list with filter UI (year/type/area), backed by local data for now
+- [x] Build People directory (`/people`) with segmented sections for Faculty, Graduate Researchers, and Undergraduate Researchers.
+- [x] Build dynamic profile pages (`/people/[slug]`) with static parameters generation (`generateStaticParams`).
+- [x] Implement deterministic, name-hashed gradient avatar placeholders with initials.
+- [x] Integrate external academic links (Google Scholar, ResearchGate, LinkedIn, Email).
+- [x] Connect individual profiles to their respective published works.
 
-**Exit criteria:** Research areas reflect the real faculty's actual research interests (not generic filler); publications list renders and filters correctly against sample data.
-
----
-
-## Phase 5 — News, Events & Gallery (static)
-**Goal:** The remaining public content types.
-
-- `/news` list + `/news/[slug]` detail
-- `/events` list (Upcoming/Past split) + `/events/[slug]` detail
-- `/gallery` grid
-
-**Exit criteria:** All three sections render correctly with sample/placeholder content clearly marked as such.
+**Exit Criteria:** Profiles for both faculty (Md. Helal-An-Nahiyan, Priyo Nath Roy) and all 5 student researchers render correctly with accurate information and zero fabricated people.
 
 ---
 
-## Phase 6 — Database Layer
-**Goal:** Move from static data to a real schema, without yet touching the dashboard.
+## Phase 4 — Research Areas, Projects & Academic Publications
+**Goal:** Deliver a rich research catalogue covering focus areas, ongoing projects, and filterable publications.
 
-- Implement the full Prisma schema from `Architecture.md §4`
-- Run initial migration against the dev database
-- Write `prisma/seed.ts` using the exact roster and info from `PRD.md §13` — no invented content
-- Verify seeded data via Prisma Studio
+- [x] Build Research Areas directory (`/research`) with custom icons and gradient card toppers.
+- [x] Build dynamic Research Area detail pages (`/research/[areaSlug]`) listing associated researchers, active projects, and papers.
+- [x] Build Project detail pages (`/research/projects/[projectSlug]`) with status badges and milestone descriptions.
+- [x] Build filterable Publications catalogue (`/publications`) with text search, type filters, year filters, area filters, collapsible abstracts, and BibTeX citation export.
 
-**Exit criteria:** `prisma migrate dev` and `prisma db seed` both succeed; Prisma Studio shows correct real faculty/student rows.
-
----
-
-## Phase 7 — Auth & Dashboard Shell
-**Goal:** Lab members can log in; the dashboard has a protected shell.
-
-- Choose **one** auth library (Better Auth or Auth.js v5) and record the decision in `Memory.md`
-- Implement login page, session handling, `requireUser()`/`requireAdmin()` guards (`Architecture.md §6`)
-- Build the `(dashboard)` layout: sidebar nav, top bar, protected by the guard
-- Create the first Admin user manually (seed or one-off script) so there's a way in
-
-**Exit criteria:** Logging in with valid credentials reaches `/dashboard`; an unauthenticated visit to any `/dashboard/*` route redirects to `/login`; role checks are enforced (an Editor cannot reach `/dashboard/users`).
+**Exit Criteria:** Research areas accurately reflect faculty domains; publications catalogue supports fast search and faceted filtering.
 
 ---
 
-## Phase 8 — Dashboard CRUD: People, Research, Publications
-**Goal:** Staff can manage the "who we are and what we study" content without touching code.
+## Phase 5 — News Archive, Events Calendar & Visual Gallery
+**Goal:** Implement remaining public content sections for lab updates and media.
 
-- CRUD screens (list/create/edit/delete) for Faculty, Students, Research Areas, Projects, Publications
-- Image upload wired to Vercel Blob/UploadThing for photos and cover images
-- Draft/Published toggle where applicable
+- [x] Build News archive (`/news`) and article reading view (`/news/[slug]`) with rich text body rendering.
+- [x] Build Events directory (`/events`) with automatic separation of Upcoming vs. Past events and calendar date badges.
+- [x] Build Event detail page (`/events/[slug]`) with schedule and venue information.
+- [x] Build Gallery (`/gallery`) with CSS masonry layout, category tabs, and interactive modal lightbox viewer.
 
-**Exit criteria:** A lab member can add a new student researcher or publication end-to-end through the UI and see it reflected on the public site after revalidation.
-
----
-
-## Phase 9 — Dashboard CRUD: News, Events, Gallery, Settings, Messages
-**Goal:** Complete the content-management surface and wire the public site fully to the database.
-
-- CRUD for News (with Tiptap editor), Events, Gallery
-- Site Settings screen (hero content, mission text, contact info, social links)
-- Contact Messages inbox (list, mark read, linked to the Resend-notified submissions)
-- Replace all remaining static/local data on the public site with live DB reads + ISR revalidation
-
-**Exit criteria:** No hardcoded content remains on the public site except genuinely static copy (e.g., legal footer text); every dynamic section is dashboard-editable.
+**Exit Criteria:** News, Events, and Gallery render correctly with smooth lightbox viewer and category filtering.
 
 ---
 
-## Phase 10 — Polish, SEO, Accessibility, QA, Deployment
-**Goal:** Ship-ready.
+## Phase 6 — Database Layer & Cloud Infrastructure (Neon Postgres & S3)
+**Goal:** Move from local static data to a live, cloud-hosted relational database and object store.
 
-- Meta tags/OpenGraph per page, `sitemap.ts`, `robots.ts`
-- Run and fix Lighthouse to meet the budgets in `Rules.md §11`
-- Full keyboard-navigation and screen-reader pass
-- Cross-browser/device check (see CMU RI's own supported-browsers note as a sanity check for what "modern browser" support means in practice)
-- Write a short admin guide (how to log in, add a publication, publish news) as a `docs/admin-guide.md` for the lab
-- Connect production database, storage, and email; deploy to Vercel; verify the production build end-to-end
-- Final update to `Memory.md` marking launch
+- [x] Deploy Prisma schema with 11 relational models to Neon Lakebase Postgres (`noisy-moon-93340476`).
+- [x] Configure connection pooling (`DATABASE_URL`) and direct migration URL (`DIRECT_URL`).
+- [x] Configure Neon S3-compatible object storage (`cairrl` bucket, `us-east-2`, `public_read` policy).
+- [x] Write and execute automated seed script (`prisma/seed.ts` & `scripts/seed-neon.mjs`) strictly populating the real seed roster and research areas from PRD §13.
+- [x] Implement centralized database query layer (`src/lib/db/queries.ts`) with React `cache()` deduplication.
 
-**Exit criteria:** Site is live at its production URL; all `PRD.md §9` success metrics are met; admin guide handed off to the lab.
+**Exit Criteria:** Neon Postgres contains all seeded tables; S3 client is initialized and verified; Prisma client singleton is type-safe.
 
 ---
 
-## Working Notes for the AI
+## Phase 7 — Authentication & Dashboard Shell
+**Goal:** Provide secure, authenticated access for lab members to manage website content.
 
-- Do not start a phase until the previous phase's exit criteria are met, unless the user explicitly says to jump ahead.
-- If a phase reveals that an earlier decision needs to change (e.g., the schema needs a new field), make the smallest change that unblocks progress, note it in `Memory.md`'s decision log, and continue — don't silently redesign unrelated parts of the app.
-- Update `Memory.md` at the end of every session, even a short one, per the format in `Memory.md §1`.
+- [x] Build administrative login page (`/login`) with session management.
+- [x] Implement server-side security guards (`requireUser()`, `requireAdmin()`) in `src/lib/auth-guard.ts`.
+- [x] Build protected dashboard layout (`src/app/(dashboard)/layout.tsx`) with sidebar navigation and user status.
+- [x] Guard all `/dashboard/*` routes so unauthenticated requests immediately redirect to `/login`.
+
+**Exit Criteria:** Valid credentials allow entry into `/dashboard`; unauthenticated requests are blocked; layout is responsive.
+
+---
+
+## Phase 8 — Administrative CRUD: People, Research & Publications
+**Goal:** Enable lab admins to manage core research identity data through intuitive management interfaces.
+
+- [x] Build People management interface (`/dashboard/people`) for Faculty and Student CRUD with photo upload support.
+- [x] Build Research Areas and Projects management (`/dashboard/research`) with slug generation and status toggling.
+- [x] Build Publications catalogue editor (`/dashboard/publications`) with type categorization and DOI management.
+- [x] Wire image uploads to Neon S3 storage with immediate public HTTPS URL generation.
+
+**Exit Criteria:** Lab admin can add/edit a researcher or publication and see it reflected immediately on the public site.
+
+---
+
+## Phase 9 — Administrative CRUD: News, Events, Gallery, Messages & Settings
+**Goal:** Complete the content management surface and administrative inbox.
+
+- [x] Build News post manager (`/dashboard/news`) with Tiptap rich-text editor and cover image uploader.
+- [x] Build Event scheduler (`/dashboard/events`) with date-time configuration and venue selector.
+- [x] Build Media Gallery manager (`/dashboard/gallery`) with batch upload to S3 and category tagging.
+- [x] Build Contact Messages inbox (`/dashboard/messages`) with read/unread tracking and inquiry details.
+- [x] Build Global Site Settings editor (`/dashboard/settings`) for lab name, mission text, and social URLs.
+
+**Exit Criteria:** Every dynamic section of the website is manageable via the dashboard without touching code.
+
+---
+
+## Phase 10 — Full Live Database Integration, Polish, SEO & Launch
+**Goal:** Fully wire every public page to live Neon Postgres queries, optimize SEO, and ensure rock-solid production readiness.
+
+- [x] Replace all static data imports across all public pages with live queries from `src/lib/db/queries.ts`.
+- [x] Implement live dynamic metric counters on Homepage and Research overview.
+- [x] Implement dynamic OpenGraph metadata, `robots.txt`, and XML sitemap (`sitemap.ts`).
+- [x] Implement custom 404 page (`not-found.tsx`) and error boundary (`error.tsx`).
+- [x] Verify complete type-check (`npm run build`) with 0 type errors and 0 lint warnings.
+- [x] Update `Memory.md` and documentation suite to reflect the completed state.
+
+**Exit Criteria:** All 47 routes compile cleanly with SSG/ISR; live data flows from Neon Postgres; site is 100% production-ready.

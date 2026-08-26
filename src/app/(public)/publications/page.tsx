@@ -1,36 +1,59 @@
 import type { Metadata } from 'next';
 import { Container } from '@/components/shared';
+import { AnimatedSection } from '@/components/shared/animated-section';
+import { getPublications, getResearchAreas } from '@/lib/db/queries';
 import { PublicationList } from '@/components/public/publication-list';
-import { siteConfig } from '@/lib/data/site-data';
 
 export const metadata: Metadata = {
   title: 'Publications',
-  description: `Browse peer-reviewed journal papers, conference proceedings, and academic contributions from ${siteConfig.name} at ${siteConfig.institution}.`,
+  description:
+    'Browse publications from CAIRRL Lab — journal articles, conference papers, and theses in robotics, control, and mechatronics.',
 };
 
-export default function PublicationsPage() {
+export default async function PublicationsPage() {
+  const [publications, researchAreas] = await Promise.all([
+    getPublications(),
+    getResearchAreas(),
+  ]);
+
+  // Transform for the client component
+  const pubData = publications.map((pub) => ({
+    id: pub.id,
+    title: pub.title,
+    authors: pub.authors,
+    venue: pub.venue,
+    year: pub.year,
+    type: pub.type,
+    abstract: pub.abstract,
+    doiOrLink: pub.doiOrLink,
+    pdfUrl: pub.pdfUrl,
+    featured: pub.featured,
+    researchAreas: pub.researchAreas.map((a) => ({ id: a.id, name: a.name, slug: a.slug })),
+  }));
+
+  const areaFilters = researchAreas.map((a) => ({ id: a.id, name: a.name, slug: a.slug }));
+
   return (
     <>
-      {/* ─── Hero ─── */}
       <section className="bg-brand-navy py-16 md:py-20">
         <Container>
           <p className="mb-3 font-mono text-xs font-medium uppercase tracking-widest text-accent-cyan">
-            Scientific Output
+            Academic Output
           </p>
           <h1 className="font-heading text-3xl font-semibold text-white md:text-4xl">
             Publications
           </h1>
           <p className="mt-4 max-w-2xl text-base text-white/70 md:text-lg">
-            Peer-reviewed journal articles, conference papers, and technical contributions
-            by CAIRRL Lab faculty and researchers.
+            Browse our published research — journal articles, conference papers, and theses.
           </p>
         </Container>
       </section>
 
-      {/* ─── Main Content ─── */}
       <section className="py-16 md:py-24">
         <Container>
-          <PublicationList />
+          <AnimatedSection>
+            <PublicationList publications={pubData} researchAreas={areaFilters} />
+          </AnimatedSection>
         </Container>
       </section>
     </>

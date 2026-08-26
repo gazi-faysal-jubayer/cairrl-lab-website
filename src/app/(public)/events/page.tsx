@@ -1,169 +1,130 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  MapPin,
-  Globe,
-  ArrowRight,
-} from 'lucide-react';
+import { Calendar, MapPin, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Container, SectionHeading } from '@/components/shared';
 import { AnimatedSection } from '@/components/shared/animated-section';
-import { events, eventTypeLabels } from '@/lib/data/news-events-data';
+import { getEvents } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
   title: 'Events',
-  description:
-    'Seminars, guest lectures, technical workshops, and thesis defense presentations at CAIRRL Lab, KUET.',
+  description: 'Upcoming and past events at CAIRRL Lab — seminars, workshops, talks, and defenses.',
 };
 
-export default function EventsDirectoryPage() {
-  const now = new Date().toISOString().slice(0, 10);
-  const upcomingEvents = events.filter((e) => e.startAt.slice(0, 10) >= now);
-  const pastEvents = events.filter((e) => e.startAt.slice(0, 10) < now);
+export default async function EventsPage() {
+  const events = await getEvents();
+  const now = new Date();
+  const upcoming = events.filter((e) => new Date(e.startAt) >= now);
+  const past = events.filter((e) => new Date(e.startAt) < now);
 
   return (
     <>
-      {/* ─── Hero ─── */}
       <section className="bg-brand-navy py-16 md:py-20">
         <Container>
           <p className="mb-3 font-mono text-xs font-medium uppercase tracking-widest text-accent-cyan">
-            Seminars & Workshops
+            Calendar
           </p>
           <h1 className="font-heading text-3xl font-semibold text-white md:text-4xl">
-            Lab Events & Talks
+            Events
           </h1>
           <p className="mt-4 max-w-2xl text-base text-white/70 md:text-lg">
-            Join our academic seminars, robotics workshops, and technical presentations
-            hosted on campus and online.
+            Seminars, workshops, and talks from the lab.
           </p>
         </Container>
       </section>
 
-      {/* ─── Upcoming Events ─── */}
+      {/* Upcoming */}
       <section className="py-16 md:py-24">
         <Container>
           <AnimatedSection>
             <SectionHeading
               title="Upcoming Events"
-              description="Scheduled talks, defense sessions, and workshops open to researchers and students."
+              description={upcoming.length > 0 ? 'Events happening soon.' : undefined}
             />
           </AnimatedSection>
 
-          {upcomingEvents.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2">
-              {upcomingEvents.map((evt, i) => (
-                <AnimatedSection key={evt.slug} delay={i * 100}>
-                  <div className="flex h-full flex-col rounded-xl border border-border bg-surface p-7 shadow-sm transition-all duration-150 hover:border-accent-cyan/40 hover:shadow-md">
-                    <div className="flex items-center justify-between gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="bg-brand-navy/10 font-mono text-xs text-brand-navy"
-                      >
-                        {eventTypeLabels[evt.type]}
-                      </Badge>
-
-                      <span className="font-mono text-xs font-bold text-accent-cyan">
-                        {evt.startAt.slice(0, 10)}
-                      </span>
-                    </div>
-
-                    <h3 className="mt-3 font-heading text-xl font-semibold text-ink">
-                      <Link href={`/events/${evt.slug}`} className="hover:underline">
-                        {evt.title}
-                      </Link>
-                    </h3>
-
-                    <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-text">
-                      {evt.description}
-                    </p>
-
-                    <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-text">
-                      <div className="flex items-center gap-1.5">
-                        {evt.isOnline ? (
-                          <>
-                            <Globe className="h-3.5 w-3.5 text-accent-cyan" />
-                            <span>Online / Virtual Seminar</span>
-                          </>
-                        ) : (
-                          <>
-                            <MapPin className="h-3.5 w-3.5 text-accent-cyan" />
-                            <span>{evt.location}</span>
-                          </>
-                        )}
+          {upcoming.length > 0 ? (
+            <div className="space-y-4">
+              {upcoming.map((event, i) => {
+                const date = new Date(event.startAt);
+                return (
+                  <AnimatedSection key={event.id} delay={i * 80}>
+                    <Link
+                      href={`/events/${event.slug}`}
+                      className="group flex gap-5 rounded-lg border border-border bg-surface p-5 transition-all duration-200 hover:border-accent-cyan/30 hover:shadow-lg"
+                    >
+                      <div className="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-lg bg-brand-navy text-white">
+                        <span className="font-mono text-xs uppercase">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
+                        <span className="font-heading text-2xl font-bold">{date.getDate()}</span>
+                        <span className="font-mono text-[10px] text-white/50">{date.getFullYear()}</span>
                       </div>
-
-                      <Link
-                        href={`/events/${evt.slug}`}
-                        className="inline-flex items-center gap-1 font-semibold text-accent-cyan hover:underline"
-                      >
-                        <span>Details & Schedule</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                </AnimatedSection>
-              ))}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="bg-accent-cyan/10 text-xs text-accent-cyan">{event.type}</Badge>
+                          {event.isOnline && <Badge variant="secondary" className="bg-emerald-500/10 text-xs text-emerald-600"><Globe className="mr-1 h-3 w-3" /> Online</Badge>}
+                        </div>
+                        <h3 className="mt-2 font-heading text-lg font-semibold text-ink group-hover:text-accent-cyan transition-colors">{event.title}</h3>
+                        {event.location && (
+                          <p className="mt-1 flex items-center gap-1 text-sm text-muted-text">
+                            <MapPin className="h-3.5 w-3.5" /> {event.location}
+                          </p>
+                        )}
+                        <p className="mt-1 flex items-center gap-1 text-xs text-muted-text">
+                          <Calendar className="h-3 w-3" />
+                          {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                          {' at '}
+                          {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </Link>
+                  </AnimatedSection>
+                );
+              })}
             </div>
           ) : (
-            <div className="rounded-xl border border-border bg-surface px-8 py-12 text-center text-muted-text">
-              No upcoming events currently scheduled. Check back soon!
-            </div>
+            <AnimatedSection>
+              <div className="rounded-lg border border-border bg-surface px-8 py-12 text-center">
+                <Calendar className="mx-auto h-10 w-10 text-muted-text/20" />
+                <p className="mt-4 text-muted-text">No upcoming events scheduled.</p>
+              </div>
+            </AnimatedSection>
           )}
         </Container>
       </section>
 
-      {/* ─── Past Events ─── */}
-      <section className="bg-surface-muted py-16 md:py-24">
-        <Container>
-          <AnimatedSection>
-            <SectionHeading
-              title="Past Events & Archive"
-              description="Review previous talks and workshops conducted by CAIRRL Lab."
-            />
-          </AnimatedSection>
+      {/* Past */}
+      {past.length > 0 && (
+        <section className="bg-surface-muted py-16 md:py-24">
+          <Container>
+            <AnimatedSection>
+              <SectionHeading title="Past Events" />
+            </AnimatedSection>
 
-          {pastEvents.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {pastEvents.map((evt, i) => (
-                <AnimatedSection key={evt.slug} delay={i * 80}>
-                  <div className="flex h-full flex-col rounded-xl border border-border bg-surface p-6 shadow-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {eventTypeLabels[evt.type]}
-                      </Badge>
-                      <span className="font-mono text-xs text-muted-text">
-                        {evt.startAt.slice(0, 10)}
-                      </span>
-                    </div>
-
-                    <h3 className="mt-3 font-heading text-base font-semibold text-ink">
-                      <Link href={`/events/${evt.slug}`} className="hover:underline">
-                        {evt.title}
-                      </Link>
-                    </h3>
-
-                    <p className="mt-2 text-xs leading-relaxed text-muted-text">
-                      {evt.description}
-                    </p>
-
-                    <div className="mt-auto pt-4">
-                      <Link
-                        href={`/events/${evt.slug}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-accent-cyan hover:underline"
-                      >
-                        <span>View Recap</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    </div>
-                  </div>
-                </AnimatedSection>
-              ))}
+            <div className="space-y-3">
+              {past.map((event) => {
+                const date = new Date(event.startAt);
+                return (
+                  <AnimatedSection key={event.id}>
+                    <Link
+                      href={`/events/${event.slug}`}
+                      className="group flex items-center gap-4 rounded-lg border border-border bg-surface p-4 transition-all duration-200 hover:border-accent-cyan/30 hover:shadow-md"
+                    >
+                      <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-surface-muted text-muted-text">
+                        <span className="font-mono text-[10px] uppercase">{date.toLocaleDateString('en-US', { month: 'short' })}</span>
+                        <span className="font-heading text-base font-bold">{date.getDate()}</span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-semibold text-ink group-hover:text-accent-cyan transition-colors">{event.title}</h3>
+                        <p className="text-xs text-muted-text">{event.type} • {date.getFullYear()}</p>
+                      </div>
+                    </Link>
+                  </AnimatedSection>
+                );
+              })}
             </div>
-          ) : (
-            <p className="text-sm italic text-muted-text">No past events recorded yet.</p>
-          )}
-        </Container>
-      </section>
+          </Container>
+        </section>
+      )}
     </>
   );
 }

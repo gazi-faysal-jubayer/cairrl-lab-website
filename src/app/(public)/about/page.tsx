@@ -2,14 +2,19 @@ import type { Metadata } from 'next';
 import { Target, Eye, Building2, Lightbulb } from 'lucide-react';
 import { Container, SectionHeading } from '@/components/shared';
 import { AnimatedSection } from '@/components/shared/animated-section';
-import { siteConfig } from '@/lib/data/site-data';
+import { getSiteSettings } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: `Learn about ${siteConfig.fullName} at ${siteConfig.institution} — our mission, vision, and research philosophy.`,
+  description: 'Learn about CAIRRL Lab at KUET — our mission, vision, and research philosophy.',
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const settings = await getSiteSettings();
+
+  const labName = settings?.labFullName ?? 'Centre for Advanced Intelligent Robotics Research Laboratory';
+  const mission = settings?.missionStatement ?? 'To advance the frontiers of robotics, control systems, and intelligent mechatronics through rigorous interdisciplinary research.';
+
   return (
     <>
       {/* Hero */}
@@ -19,7 +24,7 @@ export default function AboutPage() {
             About the Lab
           </p>
           <h1 className="font-heading text-3xl font-semibold text-white md:text-4xl">
-            {siteConfig.fullName}
+            {labName}
           </h1>
           <p className="mt-4 max-w-2xl text-base text-white/70 md:text-lg">
             An interdisciplinary research lab bridging Mechanical Engineering and
@@ -37,12 +42,8 @@ export default function AboutPage() {
                 <div className="mb-4 inline-flex rounded-lg bg-accent-cyan/10 p-3">
                   <Target className="h-6 w-6 text-accent-cyan" />
                 </div>
-                <h2 className="font-heading text-xl font-semibold text-ink">
-                  Our Mission
-                </h2>
-                <p className="mt-3 leading-relaxed text-muted-text">
-                  {siteConfig.mission}
-                </p>
+                <h2 className="font-heading text-xl font-semibold text-ink">Our Mission</h2>
+                <p className="mt-3 leading-relaxed text-muted-text">{mission}</p>
               </div>
             </AnimatedSection>
 
@@ -51,11 +52,11 @@ export default function AboutPage() {
                 <div className="mb-4 inline-flex rounded-lg bg-accent-cyan/10 p-3">
                   <Eye className="h-6 w-6 text-accent-cyan" />
                 </div>
-                <h2 className="font-heading text-xl font-semibold text-ink">
-                  Our Vision
-                </h2>
+                <h2 className="font-heading text-xl font-semibold text-ink">Our Vision</h2>
                 <p className="mt-3 leading-relaxed text-muted-text">
-                  {siteConfig.vision}
+                  To become a leading interdisciplinary research hub in Bangladesh for robotics,
+                  automation, and intelligent systems — nurturing the next generation of engineers
+                  and researchers who will shape the future of technology.
                 </p>
               </div>
             </AnimatedSection>
@@ -105,15 +106,17 @@ export default function AboutPage() {
                     Institutional Affiliation
                   </h3>
                   <ul className="mt-3 space-y-2 text-sm text-muted-text">
-                    {siteConfig.departments.map((dept) => (
-                      <li key={dept} className="flex items-start gap-2">
-                        <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-accent-cyan" />
-                        {dept}
-                      </li>
-                    ))}
                     <li className="flex items-start gap-2">
                       <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-accent-cyan" />
-                      {siteConfig.institution}
+                      Department of Mechanical Engineering
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-accent-cyan" />
+                      Department of Mechatronics Engineering
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-accent-cyan" />
+                      Khulna University of Engineering &amp; Technology (KUET)
                     </li>
                   </ul>
                 </div>

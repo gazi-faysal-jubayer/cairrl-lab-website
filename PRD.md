@@ -1,203 +1,201 @@
 # Product Requirements Document (PRD)
 
-**Project:** CAIRRL Lab Website — Centre for Advanced Intelligent Robotics Research Laboratory
-**Institution:** Khulna University of Engineering & Technology (KUET), Khulna, Bangladesh
-**Status:** Draft v1.0
-**Last updated:** 2026-08-26
+**Project:** CAIRRL Lab Website — Centre for Advanced Intelligent Robotics Research Laboratory  
+**Institution:** Khulna University of Engineering & Technology (KUET), Khulna 9203, Bangladesh  
+**Status:** Comprehensive Technical Specification v2.0 (100% Detailed)  
+**Last updated:** 2026-08-27  
 
 ---
 
 ## 1. Executive Summary
 
-CAIRRL Lab is a newly formed, interdisciplinary robotics and intelligent-systems research lab at KUET, bridging the Department of Mechanical Engineering and the Department of Mechatronics Engineering. The lab needs a professional web presence, modeled on established robotics institute sites such as [Carnegie Mellon's Robotics Institute](https://www.ri.cmu.edu/) and [George Mason's Mason Autonomy and Robotics Center (MARC)](https://marc.gmu.edu/), in order to:
+CAIRRL Lab is an interdisciplinary robotics and intelligent-systems research laboratory established at KUET, unifying advanced research across the **Department of Mechanical Engineering** and the **Department of Mechatronics Engineering**.
 
-- Establish credibility and visibility for a brand-new lab
-- Showcase people, research areas, projects, and publications
-- Attract prospective undergraduate and graduate researchers
-- Let faculty and students keep the site current without touching code
+The lab requires an authoritative, modern, and high-performance web platform modeled on premier international robotics institutes such as [Carnegie Mellon University Robotics Institute (CMU RI)](https://www.ri.cmu.edu/) and [George Mason University Autonomy and Robotics Center (MARC)](https://marc.gmu.edu/).
 
-This document defines **what** is being built, **for whom**, and **which features** are required for v1 and beyond. See `Architecture.md` for how it's built, `Design.md` for how it looks, and `Phases.md` for the build order.
+### Key Platform Objectives:
+1. **Establish Academic Authority & Global Visibility:** Present a polished, high-fidelity digital presence for international collaborators, prospective students, and KUET administration.
+2. **Comprehensive Research & Academic Showcase:** Elegantly display faculty, student researchers, research focus areas, active/completed projects, and peer-reviewed publications with faceted filtering and search.
+3. **Dynamic Content Management System (CMS):** Empower non-technical lab faculty and student admins to effortlessly publish news, schedule seminars/events, update project milestones, upload media assets, and manage publications without writing code.
+4. **Scalable Information Architecture (IA):** Ensure the platform feels complete, dense, and intentional with the founding 7-member team, while effortlessly scaling to 50+ members, hundreds of papers, and dozens of funded projects over the next decade.
 
-## 2. Background
+---
 
-CAIRRL currently consists of 2 founding faculty members and 5 student researchers (1 graduate, 4 undergraduate). It has no existing web presence. Reference institutions demonstrate the pattern this site should follow: a public-facing research showcase (people, research, publications, news/events) backed by a content system lab members can maintain themselves as the lab grows.
+## 2. Institutional Context & Background
 
-## 3. Goals & Objectives
+CAIRRL currently operates with 2 founding faculty members (Prof. Md. Helal-An-Nahiyan and Asst. Prof. Priyo Nath Roy) and 5 student researchers (1 graduate, 4 undergraduate). 
 
-| Goal | Why it matters |
-|---|---|
-| Establish an authoritative, modern web presence for CAIRRL | First impression for prospective students, collaborators, and KUET administration |
-| Showcase faculty, students, and research areas | Core purpose of a research lab site |
-| Make publications and projects discoverable | Academic credibility, citation visibility |
-| Give non-technical lab members an easy way to update content | Small team; no dedicated web developer long-term |
-| Support growth from 7 people today to a larger multi-year lab | Avoid a full rebuild in 1–2 years |
+Until now, the lab possessed no unified digital presence. In order to attract competitive research grants, recruit high-caliber graduate researchers, and interface with international robotics conferences (IEEE ICRA, IROS, etc.), the lab requires a dedicated web platform connected to live cloud infrastructure (Neon Lakebase Postgres and S3-compatible object storage).
 
-## 4. Target Users & Personas
+---
 
-| Persona | Needs |
-|---|---|
-| **Prospective student** (KUET undergrad or grad applicant) | See research areas, current projects, and how to join |
-| **Faculty / researcher / collaborator (external)** | See faculty profiles and publications quickly, judge research focus |
-| **KUET administration / press** | An authoritative overview of the lab's mission, people, and achievements |
-| **Current lab member (admin/editor)** | Add/edit people, publications, news, events — without a developer |
-| **General public / industry** | Understand what the lab does and how to get in touch |
+## 3. Core Personas & User Journeys
 
-## 5. Reference Sites & What We're Borrowing
+| Persona | Primary Goals | Key User Journey |
+|---|---|---|
+| **Prospective Graduate/Undergrad Student** | Evaluate research focus, review faculty publications, learn how to join the lab | Lands on Home → explores Research Areas → inspects Faculty profiles & Google Scholar links → visits Join Us / Contact to apply |
+| **External Academic / Research Collaborator** | Discover active lab research, cite recent papers, verify lab credentials | Visits Publications → searches/filters by area or year → reads abstracts → accesses DOI/PDF links → reaches out via Contact |
+| **Industry Partner / Funding Agency** | Review lab capabilities, infrastructure, and ongoing project deliverables | Explores Projects & Gallery → checks faculty expertise → initiates dialogue via Contact form |
+| **KUET Faculty & Student Lab Admin** | Update publications, post lab news, schedule defense/seminars, manage messages | Logs in via `/login` → accesses `/dashboard` → performs CRUD operations with immediate live public reflection |
 
-| Site | What we're taking from it |
-|---|---|
-| [CMU Robotics Institute](https://www.ri.cmu.edu/) | Global nav pattern (About / People / Research / Education / News / Events / Contact); homepage pattern of featured story + news grid + upcoming events; people directory segmented by role |
-| [GMU MARC](https://marc.gmu.edu/) | Framing research as named "research areas" tied to faculty and projects; interdisciplinary positioning; mission-driven About narrative |
+---
 
-CAIRRL is far smaller than either reference lab today, so v1 scopes the **same information architecture** at a **realistic content depth**. It should look intentional and complete at low content volume, not empty, and scale gracefully as the roster and publication list grow.
+## 4. Comprehensive Information Architecture & Route Map
 
-## 6. Scope
+```
+cairrl-lab-website/
+├── (public)
+│   ├── / ............................ Homepage (Hero, Live Stats, Focus Areas, Faculty, Featured Pubs, News, Events, CTA)
+│   ├── /about ....................... Mission, Vision, Institutional Affiliation, Research Philosophy, Story
+│   ├── /people ...................... People Directory (Segmented: Faculty, Graduate, Undergraduate)
+│   │   └── /people/[slug] ........... Individual Researcher Profile (Bio, Areas, Connected Publications, Social Links)
+│   ├── /research .................... Research Overview & Active Projects Grid
+│   │   ├── /research/[areaSlug] ..... Research Area Detail (Overview, Associated Researchers, Projects, Publications)
+│   │   └── /research/projects/[slug] Project Detail (Milestones, Rich Description, Related Papers, Gallery Items)
+│   ├── /publications ................ Faceted Academic Catalogue (Search by Title/Author, Filters by Type, Year, Area, BibTeX)
+│   ├── /news ........................ News Archive (Cover Images, Dates, Categories, Excerpts)
+│   │   └── /news/[slug] ............. Full News Article (Rich Text HTML, Date, Author attribution)
+│   ├── /events ...................... Events Directory (Upcoming vs. Past Split, Date badges, Online/Physical indicators)
+│   │   └── /events/[slug] ........... Event Detail (Schedule, Venue/Meeting Link, Agenda)
+│   ├── /gallery ..................... Visual Archive (Masonry Grid, Category Filtering, Lightbox Modal Viewer)
+│   ├── /join-us ..................... Research Tracks (B.Sc. Thesis, M.Sc./Ph.D. Research, Application Instructions & FAQ)
+│   └── /contact ..................... Interactive Contact Form (Honeypot, Zod-validated) & Institutional Coordinates
+│
+├── (auth)
+│   └── /login ....................... Secure Administrative Login Portal (Session management)
+│
+└── (dashboard) [Protected]
+    ├── /dashboard ................... Administrative Command Center (Live metrics, quick actions, recent messages)
+    ├── /dashboard/people ............ People Management (Faculty & Student CRUD, ordering, photo uploads)
+    ├── /dashboard/research .......... Research Focus Areas & Projects Management (Slug generation, status toggles)
+    ├── /dashboard/publications ...... Publications CRUD (Type categorization, DOI links, abstract editor)
+    ├── /dashboard/news .............. News Publisher (Rich Text Tiptap editor, cover image uploader, draft/publish toggle)
+    ├── /dashboard/events ............ Event Scheduler (Date-time pickers, event types, venue configuration)
+    ├── /dashboard/gallery ........... Media Manager (Image uploads to Neon S3, captions, category tagging)
+    ├── /dashboard/messages .......... Contact Form Inbox (Read/Unread status, submission timestamps)
+    ├── /dashboard/settings .......... Global Lab Settings (Lab name, mission statement, contact email, social links)
+    └── /dashboard/users ............. User & Role Management (Admin / Editor credentials, RBAC)
+```
 
-### 6.1 In scope (v1)
+---
 
-**Public website**
-- Home
-- About (mission, vision, founding story, affiliation with KUET's Mechanical & Mechatronics Engineering departments)
-- People (Faculty, Graduate Researchers, Undergraduate Researchers)
-- Research (Research Areas, Projects)
-- Publications (browsable, filterable list)
-- News & Events
-- Gallery
-- Join Us (how to get involved as a thesis/research student)
-- Contact (form + lab address/email)
+## 5. Detailed Functional Specifications per Section
 
-**Admin dashboard**
-- Secure login for lab members (Admin / Editor roles)
-- CRUD for People, Research Areas, Projects, Publications, News, Events, Gallery
-- Site settings (hero content, mission text, contact info, social links)
-- Contact form submissions inbox
+### 5.1 Homepage (`/`)
+- **Hero Section:** High-contrast `brand-navy` background with dynamic grid overlay, subtle cyan ambient blur orbs, prominent institutional subtitle, lab title, mission tagline, and primary CTAs (`Meet the Team`, `Explore Research`).
+- **Live Metric Counter:** Real-time synchronized counters reading directly from Neon Postgres:
+  - Total Faculty (`FacultyMember` count)
+  - Active Members (`FacultyMember` + `StudentMember` count)
+  - Research Areas (`ResearchArea` count)
+  - Published Works (`Publication` count)
+- **Research Highlights:** 6 distinct focus area cards with custom icons, descriptions, and dynamic metadata badge indicators.
+- **Faculty Spotlight:** Dedicated cards for founding faculty featuring photo, title, department, and area badges.
+- **Featured Publications:** Top highlighted publications with type badge, year, authors, venue, and DOI direct link.
+- **Latest News & Upcoming Events:** 3 most recent published articles and upcoming calendar items.
+- **Call to Action (CTA):** Highlighting research recruitment and thesis opportunities.
 
-### 6.2 Out of scope (v1) — candidates for v2+
+### 5.2 About Page (`/about`)
+- **Mission & Vision:** Structured dual cards displaying the lab's core academic mission and long-term vision.
+- **Institutional Affiliation:** Explicit connection to the Department of Mechanical Engineering and Department of Mechatronics Engineering at KUET.
+- **Founding Narrative:** The founding story of CAIRRL Lab (est. 2026), its interdisciplinary philosophy, and core objectives.
 
-- Bangla-language toggle / i18n
-- Full-length blog beyond short News posts
-- Alumni network / directory (add once the lab has graduates)
-- Event registration & ticketing
-- Newsletter / mailing list integration
-- Public API for publications
-- Multi-lab / multi-tenant support
-- Automatic import of publications from Google Scholar / ORCID
+### 5.3 People Directory & Profile System (`/people`, `/people/[slug]`)
+- **Directory Hierarchy:** Tabbed or segmented view grouping members into Faculty, Graduate Researchers, and Undergraduate Researchers.
+- **Avatar System:** Supports high-resolution portrait photos from Neon S3; falls back to deterministic, name-hashed gradient avatars with initials.
+- **Dynamic Profile Pages (`/people/[slug]`):**
+  - Full biographical details, designation, department, and academic degree program.
+  - Linked Research Areas.
+  - Integrated Publications List: dynamically queries all publications authored or co-authored by the researcher.
+  - Academic & Professional Outbound Links: Google Scholar, ResearchGate, LinkedIn, and official KUET email.
 
-## 7. Functional Requirements
+### 5.4 Research Areas & Projects (`/research`, `/research/[areaSlug]`, `/research/projects/[slug]`)
+- **Research Areas Overview:** Rich visual cards featuring custom icons, gradient accents, researcher counts, project counts, and publication counts.
+- **Area Detail Page (`/research/[areaSlug]`):** In-depth domain description, list of associated faculty & student researchers, ongoing projects, and all publications mapped to the area.
+- **Project Detail Page (`/research/projects/[slug]`):** Project status (`PLANNED`, `ONGOING`, `COMPLETED`), start/end dates, full project description, linked publications, and image gallery.
 
-### 7.1 Home
-- Hero: lab name, short tagline, CTA buttons ("Meet the Team", "Explore Research")
-- Highlighted research area or project
-- Latest 3–4 news items
-- Upcoming events (if any — hide the section gracefully if none)
-- Quick stats strip (faculty count, active projects, publications) computed from real data, never hardcoded
-- Footer: quick links, contact, social / Scholar / ResearchGate links
+### 5.5 Academic Publications Catalogue (`/publications`)
+- **Multi-dimensional Filtering:**
+  - Real-time text search across paper titles, author lists, and venues.
+  - Type filter: `All`, `Journal`, `Conference`, `Thesis`, `Preprint`, `Book Chapter`.
+  - Year filter: Dynamically computed from database publication years.
+  - Research Area filter: Categorized by focus domains.
+- **Publication Card Features:**
+  - Publication metadata: Title, author string, venue, year, publication type badge.
+  - Interactive collapsible abstract toggle with smooth animation.
+  - Direct DOI / PDF outbound action buttons.
+  - One-click BibTeX citation generator and clipboard copy utility.
 
-### 7.2 About
-- Mission & vision statement
-- Founding story / date established
-- Affiliation: Dept. of Mechanical Engineering + Dept. of Mechatronics Engineering, KUET
-- Research philosophy (interdisciplinary robotics, control, mechatronics, autonomy)
+### 5.6 News & Events (`/news`, `/news/[slug]`, `/events`, `/events/[slug]`)
+- **News Engine:** Grid view of published news posts with cover image, publication date, excerpt, and full rich-text reading page.
+- **Events Calendar:** Clear separation between **Upcoming Events** and **Past Events**.
+  - Calendar date stack (Month abbreviation, numeric day, year).
+  - Event type categorization (`Seminar`, `Talk`, `Workshop`, `Defense`, `Other`).
+  - Online vs. In-person indicator with venue or meeting details.
 
-### 7.3 People
-- **Faculty** — photo, name, title/designation, department, short bio, research interest tags, links (Google Scholar, ResearchGate, email)
-- **Graduate Student Researchers** — photo, name, degree program, research focus, links
-- **Undergraduate Student Researchers** — photo, name, batch/year, area of interest
-- *(Future)* Alumni section, enabled once the lab has graduates
-- Each person gets an individual profile page at `/people/[slug]`
+### 5.7 Gallery Archive (`/gallery`)
+- **Masonry Layout:** Responsive multi-column layout supporting variable aspect ratio images.
+- **Category Filter Tabs:** Dynamic category sorting (`Lab & Facilities`, `Robotics Demos`, `Workshops & Events`, `Team`).
+- **Interactive Lightbox:** Fullscreen modal with image zoom, keyboard navigation (Left/Right arrows, Escape), captions, and image index counter.
 
-### 7.4 Research
-- **Research Areas** — e.g. Robotics & Control, Mechatronics Systems, Additive Manufacturing, Aerial Robotics / UAV Control, Industrial Automation, Computer Vision & HRI, IoT & Embedded Systems — each with a description, cover image, associated faculty, and associated projects/publications
-- **Projects** — title, status (Ongoing / Completed / Planned), summary, full description, team members, related research area(s), cover image and gallery
+### 5.8 Join Us & Contact (`/join-us`, `/contact`)
+- **Join Us:** Clear guidelines for undergraduate B.Sc. thesis students and prospective M.Sc./Ph.D. researchers, including required prerequisites, research commitment, and application workflow.
+- **Contact Form:** Interactive form featuring Zod validation, honeypot anti-spam protection, success notifications, and instant database ingestion into the Admin Messages inbox.
+- **Lab Coordinates:** Physical address at KUET campus, contact email, and institutional affiliation.
 
-### 7.5 Publications
-- List view with filters: year, type (Journal / Conference / Thesis / Preprint / Book Chapter), research area, author
-- Each entry: title, authors, venue, year, type, abstract (optional), external link (DOI / PDF / Scholar)
-- Sortable and paginated so it scales past a handful of entries
+### 5.9 Administrative Dashboard (`/dashboard/*`)
+- **Role-Based Access Control (RBAC):** `ADMIN` (full system privileges) and `EDITOR` (content management).
+- **CRUD Suites:** Complete data management tables for People, Research Areas, Projects, Publications, News, Events, Gallery, Settings, and Users.
+- **Object Storage Integration:** Direct image upload to Neon S3 storage with auto-generated public URLs.
+- **Rich Text Authoring:** Tiptap WYSIWYG editor for news posts and project narratives.
+- **Contact Inbox:** Live management interface to review incoming inquiries, mark them as read, or delete spam.
 
-### 7.6 News & Events
-- **News** — dated posts with cover image, excerpt, rich-text body, optional author
-- **Events** — title, type (Seminar / Talk / Workshop / Defense / Other), date & time, location (physical/online), description; split into Upcoming vs. Past, mirroring CMU RI's pattern
+---
 
-### 7.7 Gallery
-- Grid of images with captions, optionally grouped by event, project, or category
+## 6. Non-Functional & Quality Requirements
 
-### 7.8 Join Us
-- Explains how undergrad/grad students can join as thesis or research students
-- Lists current openings (editable) or a general "always open to motivated students — email us" message
-- Links through to Contact
+1. **Performance:** 
+   - Lighthouse Performance Score ≥ 90 on all public pages.
+   - Core Web Vitals compliance (LCP < 2.0s, CLS < 0.05, FID/INP < 100ms).
+   - Incremental Static Regeneration (ISR) and React `cache()` deduplication on all database queries.
+2. **Security:**
+   - Server-side session verification in App Router layouts and Server Actions.
+   - Zero exposure of server secrets (`DATABASE_URL`, `AWS_SECRET_ACCESS_KEY`, `AUTH_SECRET`) to the browser bundle.
+   - Input sanitization and Zod server-side validation on every mutation.
+3. **Accessibility (a11y):**
+   - WCAG 2.1 Level AA compliance.
+   - Semantic HTML5 structure (`main`, `section`, `article`, `header`, `footer`, `nav`).
+   - High contrast ratios (brand-navy and accent-cyan contrast validated).
+   - Complete keyboard navigability and `prefers-reduced-motion` compliance.
+4. **SEO & Discoverability:**
+   - Automated dynamic `sitemap.xml` and `robots.txt`.
+   - Comprehensive OpenGraph and Twitter card metadata for every route.
+   - Structured JSON-LD schemas for `Organization`, `Person`, and `ScholarlyArticle`.
 
-### 7.9 Contact
-- Contact form (name, email, subject, message) → stored in the dashboard inbox + emailed to lab admin
-- Static info: address (KUET, Khulna), department(s), email, optional map embed
+---
 
-### 7.10 Admin Dashboard
-- Login (email + password, or magic link) restricted to lab members
-- Roles: **Admin** (full access incl. user management & settings) and **Editor** (content CRUD only)
-- Dashboard home: at-a-glance counts, recent activity, unread contact messages
-- CRUD screens for every content type in 7.1–7.9, with image upload, form validation, and preview
-- Draft / Published state for News, Events, and Publications so unfinished content never leaks to the public site
+## 7. Official Seed Roster (Source of Truth)
 
-## 8. Non-Functional Requirements
+Strict adherence to actual lab personnel. Fabricating members, titles, or publications is strictly prohibited (`Rules.md §8`).
 
-- **Performance:** target Lighthouse Performance ≥ 90; static generation/ISR wherever content doesn't change per request
-- **SEO:** server-rendered HTML, per-page meta tags/OpenGraph, `sitemap.xml`, `robots.txt`, semantic HTML
-- **Responsiveness:** fully usable on mobile, tablet, and desktop — most first-time visitors arrive via a shared mobile/social link
-- **Accessibility:** WCAG 2.1 AA — color contrast, keyboard navigation, alt text, visible focus states
-- **Security:** dashboard routes authenticated and authorized server-side; all input validated and sanitized; secrets never exposed client-side
-- **Maintainability:** a non-developer lab member should be able to add a publication or news post in under 2 minutes via the dashboard
-- **Cost-consciousness:** should run comfortably on free/low-cost tiers appropriate for a university lab
-- **Content scalability:** the IA should comfortably support the roster and publication list growing 5–10x without a redesign
+### Faculty Members
+1. **Md. Helal-An-Nahiyan**
+   - Designation: Professor / Associate Professor
+   - Department: Department of Mechanical Engineering, KUET
+   - Research Areas: Robotics & Control, Mechatronics Systems, Additive Manufacturing
+   - Google Scholar: [Profile Link](https://scholar.google.com/citations?user=rkOGMxgAAAAJ&hl=en)
+2. **Priyo Nath Roy**
+   - Designation: Assistant Professor
+   - Department: Department of Mechatronics Engineering, KUET
+   - Research Areas: Industrial Robot Control, UAV/eVTOL Control, IoT & Embedded Systems
+   - Google Scholar: [Profile Link](https://scholar.google.com/citations?user=l8HwgY8AAAAJ&hl=en)
 
-## 9. Success Metrics
+### Graduate Student Researchers
+1. **Mashrul Khan**
+   - Degree: M.Sc. in Mechatronics / Mechanical Engineering
+   - Focus: Robotics and Autonomous Control
 
-- Site live with all 5 current student researchers and both faculty profiles populated
-- 100% of real publications (as supplied by faculty) represented at launch
-- A non-developer lab member can publish a news post unassisted
-- Lighthouse scores ≥ 90 (Performance, Accessibility, Best Practices, SEO) on Home and People pages
-- Site indexed and appearing for a search of "CAIRRL Lab KUET" within 4 weeks of launch
-
-## 10. Assumptions & Constraints
-
-- Team is small (2 faculty + 5 students today); content volume is light at launch but the IA is built to scale
-- No dedicated ongoing developer after initial build — the dashboard must carry the maintenance burden
-- Budget is limited/academic — prefer free-tier-friendly infrastructure
-- Content (bios, publications, project descriptions) is supplied by lab members; nothing is fabricated (see `Rules.md §8`)
-- Domain/hosting (KUET subdomain vs. a lab-owned domain) is a lab decision, not a build blocker
-
-## 11. Risks
-
-| Risk | Mitigation |
-|---|---|
-| Content stays thin (small lab) | Design pages to look intentional at low content volume (see `Design.md`); avoid CMU/MARC-scale grids that look empty |
-| No one maintains the site after handoff | Dashboard must be genuinely easy to use; ship a short admin guide in the final phase of `Phases.md` |
-| Scope creep beyond v1 | `PRD.md §6.2` explicitly fences off v2 ideas |
-
-## 12. Roadmap Beyond v1
-
-- Bangla/English language toggle
-- Alumni directory as first students graduate
-- BibTeX import for publications
-- Longer-form lab blog / research stories
-- Event registration for seminars/workshops
-- Deeper integration with KUET's main site/branding once formalized
-
-## 13. Seed Roster (source of truth for initial content)
-
-**Faculty**
-
-| Name | Department | Research interests | Google Scholar |
-|---|---|---|---|
-| Md. Helal-An-Nahiyan | Mechanical Engineering, KUET | Robotics & Control, Mechatronics, Additive Manufacturing | [Profile](https://scholar.google.com/citations?user=rkOGMxgAAAAJ&hl=en) |
-| Priyo Nath Roy | Mechatronics Engineering, KUET | Industrial robot control, UAV/eVTOL control, IoT | [Profile](https://scholar.google.com/citations?user=l8HwgY8AAAAJ&hl=en) |
-
-**Graduate Student Researcher**
-- Mashrul Khan
-
-**Undergraduate Student Researchers**
-- Hafizur Rahman
-- Gazi Faysal Jubayer
-- Rahat *(confirm full name before publishing)*
-- Sojib *(confirm full name before publishing)*
-
-> This table is the single source of truth for seed data referenced in `Phases.md` and `Memory.md`. Never invent additional people, titles, or bios — flag missing details as TODOs instead of guessing.
+### Undergraduate Student Researchers
+1. **Hafizur Rahman** — B.Sc. in Mechatronics Engineering
+2. **Gazi Faysal Jubayer** — B.Sc. in Mechatronics Engineering
+3. **Rahat** — B.Sc. in Engineering
+4. **Sojib** — B.Sc. in Engineering

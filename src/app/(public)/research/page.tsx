@@ -1,113 +1,108 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import {
-  Bot,
-  Cog,
-  Layers,
-  Plane,
-  Factory,
-  Cpu,
-  ArrowRight,
-  Sparkles,
-  Calendar,
-} from 'lucide-react';
+import { ArrowRight, Cpu, Cog, FlaskConical, Plane, Factory, Wifi } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import { Container, SectionHeading } from '@/components/shared';
 import { AnimatedSection } from '@/components/shared/animated-section';
-import { researchAreas, projects } from '@/lib/data/research-data';
-import { people } from '@/lib/data/people-data';
-import { cn } from '@/lib/utils';
+import { getResearchAreas, getProjects } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
   title: 'Research',
   description:
-    'Explore research areas and active engineering projects at CAIRRL Lab, KUET — Robotics, Control, Mechatronics, UAVs, and IoT.',
+    'Explore the research areas, projects, and focus areas at CAIRRL Lab — robotics, control systems, mechatronics, and intelligent systems.',
 };
 
-const iconMap = {
-  bot: Bot,
-  cog: Cog,
-  layers: Layers,
-  plane: Plane,
-  factory: Factory,
-  cpu: Cpu,
+const areaIcons: Record<string, typeof Cpu> = {
+  'robotics-and-control': Cpu,
+  'mechatronics-systems': Cog,
+  'additive-manufacturing': FlaskConical,
+  'aerial-robotics-and-uav': Plane,
+  'industrial-automation': Factory,
+  'iot-and-embedded-systems': Wifi,
 };
 
-export default function ResearchOverviewPage() {
+const areaGradients: Record<string, string> = {
+  'robotics-and-control': 'from-cyan-500/20 to-blue-500/5',
+  'mechatronics-systems': 'from-violet-500/20 to-purple-500/5',
+  'additive-manufacturing': 'from-emerald-500/20 to-teal-500/5',
+  'aerial-robotics-and-uav': 'from-sky-500/20 to-indigo-500/5',
+  'industrial-automation': 'from-amber-500/20 to-orange-500/5',
+  'iot-and-embedded-systems': 'from-rose-500/20 to-pink-500/5',
+};
+
+export default async function ResearchPage() {
+  const [researchAreas, projects] = await Promise.all([
+    getResearchAreas(),
+    getProjects(),
+  ]);
+
   return (
     <>
-      {/* ─── Hero ─── */}
+      {/* Hero */}
       <section className="bg-brand-navy py-16 md:py-20">
         <Container>
           <p className="mb-3 font-mono text-xs font-medium uppercase tracking-widest text-accent-cyan">
-            Interdisciplinary Innovation
+            Research
           </p>
           <h1 className="font-heading text-3xl font-semibold text-white md:text-4xl">
-            Research & Projects
+            Research Areas & Projects
           </h1>
           <p className="mt-4 max-w-2xl text-base text-white/70 md:text-lg">
-            Bridging mechanical engineering, control systems, electronics, and
-            computing to develop reliable intelligent systems for real-world applications.
+            Our lab works across multiple disciplines within robotics, control, and intelligent
+            systems. Explore our focus areas and active projects below.
           </p>
         </Container>
       </section>
 
-      {/* ─── Research Areas ─── */}
+      {/* Research Areas */}
       <section className="py-16 md:py-24">
         <Container>
           <AnimatedSection>
             <SectionHeading
-              title="Research Focus Areas"
-              description="Our core research thrusts unite mechanical design with embedded intelligence and modern control theory."
+              title="Focus Areas"
+              description="Core research domains that define our lab's expertise and ongoing investigations."
             />
           </AnimatedSection>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {researchAreas.map((area, i) => {
-              const Icon = iconMap[area.iconName] || Bot;
-              const associatedFaculty = people.filter((p) =>
-                area.facultySlugs.includes(p.slug)
-              );
-
+              const Icon = areaIcons[area.slug] ?? Cpu;
+              const gradient = areaGradients[area.slug] ?? 'from-cyan-500/20 to-blue-500/5';
               return (
-                <AnimatedSection key={area.slug} delay={i * 80}>
+                <AnimatedSection key={area.id} delay={i * 80}>
                   <Link
                     href={`/research/${area.slug}`}
-                    className="group flex h-full flex-col rounded-xl border border-border bg-surface p-7 transition-all duration-200 hover:-translate-y-1 hover:border-accent-cyan/40 hover:shadow-lg"
+                    className="group relative block overflow-hidden rounded-xl border border-border bg-surface transition-all duration-200 hover:border-accent-cyan/30 hover:shadow-lg hover:shadow-accent-cyan/5"
                   >
-                    <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-accent-cyan/10 text-accent-cyan transition-colors duration-150 group-hover:bg-accent-cyan group-hover:text-white">
-                      <Icon className="h-6 w-6" />
-                    </div>
+                    {/* Gradient background */}
+                    <div className={`h-2 bg-gradient-to-r ${gradient}`} />
 
-                    <h3 className="font-heading text-xl font-semibold text-ink transition-colors duration-150 group-hover:text-accent-cyan">
-                      {area.name}
-                    </h3>
-
-                    <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-text">
-                      {area.shortDescription}
-                    </p>
-
-                    {/* Associated Faculty */}
-                    <div className="mt-6 border-t border-border pt-4">
-                      <p className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-text/70">
-                        Lead Faculty
-                      </p>
-                      <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {associatedFaculty.map((f) => (
-                          <span
-                            key={f.slug}
-                            className="inline-block text-xs font-medium text-ink"
-                          >
-                            {f.name}
-                          </span>
-                        ))}
+                    <div className="p-6">
+                      <div className="mb-4 inline-flex rounded-lg bg-accent-cyan/10 p-3 transition-colors group-hover:bg-accent-cyan/20">
+                        <Icon className="h-6 w-6 text-accent-cyan" />
                       </div>
-                    </div>
+                      <h3 className="font-heading text-lg font-semibold text-ink transition-colors group-hover:text-accent-cyan">
+                        {area.name}
+                      </h3>
+                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-text">
+                        {area.description}
+                      </p>
 
-                    <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-accent-cyan group-hover:underline">
-                      <span>Explore Area & Projects</span>
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-1" />
+                      <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-text">
+                        {area.faculty.length + area.students.length > 0 && (
+                          <span>{area.faculty.length + area.students.length} researchers</span>
+                        )}
+                        {area.projects.length > 0 && (
+                          <span>{area.projects.length} projects</span>
+                        )}
+                        {area.publications.length > 0 && (
+                          <span>{area.publications.length} publications</span>
+                        )}
+                      </div>
+
+                      <div className="mt-4 flex items-center gap-1 text-sm font-medium text-accent-cyan opacity-0 transition-opacity group-hover:opacity-100">
+                        Learn more <ArrowRight className="h-3.5 w-3.5" />
+                      </div>
                     </div>
                   </Link>
                 </AnimatedSection>
@@ -117,114 +112,81 @@ export default function ResearchOverviewPage() {
         </Container>
       </section>
 
-      {/* ─── Active & Planned Projects ─── */}
-      <section className="bg-surface-muted py-16 md:py-24">
-        <Container>
-          <AnimatedSection>
-            <SectionHeading
-              title="Featured Research Projects"
-              description="Current experimental initiatives and student-led investigations underway in the laboratory."
-            />
-          </AnimatedSection>
+      {/* Projects */}
+      {projects.length > 0 && (
+        <section className="bg-surface-muted py-16 md:py-24">
+          <Container>
+            <AnimatedSection>
+              <SectionHeading
+                title="Active Projects"
+                description="Current and completed research projects across our focus areas."
+              />
+            </AnimatedSection>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((proj, i) => {
-              const matchedAreas = researchAreas.filter((a) =>
-                proj.researchAreaSlugs.includes(a.slug)
-              );
-
-              return (
-                <AnimatedSection key={proj.slug} delay={i * 100}>
-                  <div className="flex h-full flex-col rounded-xl border border-border bg-surface p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <Badge
-                        variant="secondary"
-                        className={cn(
-                          'text-xs font-semibold',
-                          proj.status === 'ONGOING'
-                            ? 'bg-accent-green/10 text-accent-green'
-                            : 'bg-muted text-muted-text'
-                        )}
-                      >
-                        {proj.status === 'ONGOING' ? '● Ongoing' : 'Planned'}
-                      </Badge>
-                      <span className="flex items-center gap-1 text-xs text-muted-text">
-                        <Calendar className="h-3 w-3" />
-                        {proj.startDate.slice(0, 4)}
-                      </span>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((project, i) => (
+                <AnimatedSection key={project.id} delay={i * 80}>
+                  <Link
+                    href={`/research/projects/${project.slug}`}
+                    className="group block overflow-hidden rounded-lg border border-border bg-surface transition-all duration-200 hover:border-accent-cyan/30 hover:shadow-lg hover:shadow-accent-cyan/5"
+                  >
+                    {/* Cover */}
+                    <div className="aspect-video bg-brand-navy/5">
+                      {project.coverImageUrl ? (
+                        <div
+                          className="h-full w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                          style={{ backgroundImage: `url(${project.coverImageUrl})` }}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-navy/10 to-accent-cyan/5">
+                          <Cpu className="h-10 w-10 text-muted-text/20" />
+                        </div>
+                      )}
                     </div>
 
-                    <h3 className="font-heading text-lg font-semibold text-ink">
-                      {proj.title}
-                    </h3>
-
-                    <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-text">
-                      {proj.summary}
-                    </p>
-
-                    <div className="mt-5 flex flex-wrap gap-1.5">
-                      {matchedAreas.map((a) => (
+                    <div className="p-5">
+                      <div className="flex items-center gap-2">
                         <Badge
-                          key={a.slug}
                           variant="secondary"
-                          className="bg-accent-cyan/10 text-xs text-accent-cyan"
+                          className={
+                            project.status === 'ONGOING'
+                              ? 'bg-accent-green/10 text-xs text-accent-green'
+                              : project.status === 'COMPLETED'
+                                ? 'bg-muted-text/10 text-xs text-muted-text'
+                                : 'bg-amber-500/10 text-xs text-amber-600'
+                          }
                         >
-                          {a.name}
+                          {project.status}
                         </Badge>
-                      ))}
-                    </div>
+                      </div>
+                      <h3 className="mt-2 font-heading text-base font-semibold text-ink transition-colors group-hover:text-accent-cyan">
+                        {project.title}
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-text">
+                        {project.summary}
+                      </p>
 
-                    <div className="mt-6 border-t border-border pt-4">
-                      <Link
-                        href={`/research/projects/${proj.slug}`}
-                        className={cn(
-                          buttonVariants({ variant: 'outline', size: 'sm' }),
-                          'w-full justify-between'
-                        )}
-                      >
-                        <span>View Project Details</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
+                      {project.researchAreas.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {project.researchAreas.map((area) => (
+                            <Badge
+                              key={area.id}
+                              variant="secondary"
+                              className="bg-accent-cyan/10 text-[10px] text-accent-cyan"
+                            >
+                              {area.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  </Link>
                 </AnimatedSection>
-              );
-            })}
-          </div>
-        </Container>
-      </section>
-
-      {/* ─── Bottom CTA ─── */}
-      <section className="py-16 md:py-20">
-        <Container>
-          <AnimatedSection>
-            <div className="flex flex-col items-center justify-between gap-6 rounded-2xl bg-brand-navy p-8 text-white md:flex-row md:p-12">
-              <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 font-mono text-xs text-accent-cyan">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Academic Output
-                </span>
-                <h2 className="mt-3 font-heading text-2xl font-semibold md:text-3xl">
-                  Browse Lab Publications
-                </h2>
-                <p className="mt-1 text-sm text-white/70">
-                  Read our peer-reviewed journal papers, conference proceedings, and technical reports.
-                </p>
-              </div>
-              <Link
-                href="/publications"
-                className={cn(
-                  buttonVariants({ size: 'lg' }),
-                  'shrink-0 bg-accent-cyan text-white hover:bg-accent-cyan-hover'
-                )}
-              >
-                Explore Publications
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              ))}
             </div>
-          </AnimatedSection>
-        </Container>
-      </section>
+          </Container>
+        </section>
+      )}
     </>
   );
 }

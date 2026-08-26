@@ -3,14 +3,19 @@ import { Mail, MapPin, Building2 } from 'lucide-react';
 import { Container, SectionHeading } from '@/components/shared';
 import { AnimatedSection } from '@/components/shared/animated-section';
 import { ContactForm } from '@/components/public/contact-form';
-import { siteConfig } from '@/lib/data/site-data';
+import { getSiteSettings } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: `Get in touch with ${siteConfig.name} at ${siteConfig.institution}. Send us a message or visit us at KUET, Khulna.`,
+  description: 'Get in touch with CAIRRL Lab at KUET. Send us a message or visit us at KUET campus in Khulna, Bangladesh.',
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+
+  const email = settings?.contactEmail ?? 'cairrl@kuet.ac.bd';
+  const address = settings?.address ?? 'KUET, Khulna 9203, Bangladesh';
+
   return (
     <>
       {/* Hero */}
@@ -53,13 +58,13 @@ export default function ContactPage() {
                       <Mail className="h-5 w-5 text-accent-cyan" />
                     </div>
                     <h3 className="font-heading text-base font-semibold text-ink">
-                      Email
+                      Official Email
                     </h3>
                     <a
-                      href={`mailto:${siteConfig.contactEmail}`}
+                      href={`mailto:${email}`}
                       className="mt-2 block text-sm text-accent-cyan transition-colors duration-150 hover:text-accent-cyan-hover"
                     >
-                      {siteConfig.contactEmail}
+                      {email}
                     </a>
                   </div>
 
@@ -68,10 +73,10 @@ export default function ContactPage() {
                       <MapPin className="h-5 w-5 text-accent-cyan" />
                     </div>
                     <h3 className="font-heading text-base font-semibold text-ink">
-                      Address
+                      Campus Coordinates
                     </h3>
                     <p className="mt-2 text-sm text-muted-text">
-                      {siteConfig.address}
+                      {address}
                     </p>
                   </div>
 
@@ -80,14 +85,21 @@ export default function ContactPage() {
                       <Building2 className="h-5 w-5 text-accent-cyan" />
                     </div>
                     <h3 className="font-heading text-base font-semibold text-ink">
-                      Departments
+                      Departments & Affiliation
                     </h3>
-                    <ul className="mt-2 space-y-1">
-                      {siteConfig.departments.map((dept) => (
-                        <li key={dept} className="text-sm text-muted-text">
-                          {dept}
-                        </li>
-                      ))}
+                    <ul className="mt-2 space-y-1.5 text-sm text-muted-text">
+                      <li className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-cyan" />
+                        Department of Mechanical Engineering
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-cyan" />
+                        Department of Mechatronics Engineering
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-cyan" />
+                        Khulna University of Engineering &amp; Technology (KUET)
+                      </li>
                     </ul>
                   </div>
                 </div>
