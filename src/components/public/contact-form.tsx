@@ -1,31 +1,66 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Send } from 'lucide-react';
+import { Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { contactFormSchema, type ContactFormData } from '@/lib/validations/contact';
+import { submitContactMessage } from '@/lib/actions/contact-action';
 
 export function ContactForm() {
+  const [submitResult, setSubmitResult] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
   });
 
   const onSubmit = async (data: ContactFormData) => {
-    // Submission wiring comes in Phase 9
-    // For now, just log to console
-    console.log('Contact form data:', data);
-    alert('Thank you! Form submission will be wired in a future update.');
+    setSubmitResult(null);
+    const res = await submitContactMessage(data);
+    if (res.success) {
+      setSubmitResult({
+        type: 'success',
+        message: res.message || 'Thank you! Your message has been sent.',
+      });
+      reset();
+    } else {
+      setSubmitResult({
+        type: 'error',
+        message: res.error || 'Failed to submit. Please try again.',
+      });
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      {submitResult && (
+        <div
+          className={`flex items-start gap-2.5 rounded-lg p-4 text-xs font-medium ${
+            submitResult.type === 'success'
+              ? 'border border-accent-green/30 bg-accent-green/10 text-accent-green'
+              : 'border border-destructive/30 bg-destructive/10 text-destructive'
+          }`}
+          role="alert"
+        >
+          {submitResult.type === 'success' ? (
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          ) : (
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          )}
+          <span>{submitResult.message}</span>
+        </div>
+      )}
       {/* Name */}
       <div>
         <label

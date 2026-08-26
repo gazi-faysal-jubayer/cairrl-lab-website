@@ -7,8 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { publications, publicationTypeLabels } from '@/lib/data/publications-data';
 
+import { PublicationDialog } from '@/components/dashboard/publication-dialog';
+
 export default function DashboardPublicationsPage() {
   const [search, setSearch] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const filteredPubs = publications.filter((p) => {
     if (search.trim()) {
@@ -24,6 +27,12 @@ export default function DashboardPublicationsPage() {
 
   return (
     <div className="space-y-6">
+      <PublicationDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSuccess={() => alert('Publication saved successfully!')}
+      />
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -38,7 +47,7 @@ export default function DashboardPublicationsPage() {
         <Button
           size="sm"
           className="bg-brand-navy text-white hover:bg-brand-navy-hover"
-          onClick={() => alert('Add Publication modal')}
+          onClick={() => setIsDialogOpen(true)}
         >
           <Plus className="mr-1.5 h-4 w-4" />
           Add Publication

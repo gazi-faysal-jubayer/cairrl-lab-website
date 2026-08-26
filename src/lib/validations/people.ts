@@ -14,9 +14,9 @@ export const facultySchema = z.object({
   googleScholarUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
   researchGateUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
   linkedinUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
-  researchAreaSlugs: z.array(z.string()).default([]),
-  order: z.number().int().default(0),
-  status: z.enum(['DRAFT', 'PUBLISHED']).default('PUBLISHED'),
+  researchAreaSlugs: z.array(z.string()).optional(),
+  order: z.number().int().optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED']).optional(),
 });
 
 export const studentSchema = z.object({
@@ -33,9 +33,9 @@ export const studentSchema = z.object({
   email: z.string().email('Must be a valid email').or(z.literal('')).optional(),
   googleScholarUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
   linkedinUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
-  researchAreaSlugs: z.array(z.string()).default([]),
-  order: z.number().int().default(0),
-  status: z.enum(['DRAFT', 'PUBLISHED']).default('PUBLISHED'),
+  researchAreaSlugs: z.array(z.string()).optional(),
+  order: z.number().int().optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED']).optional(),
 });
 
 export type FacultyFormData = z.infer<typeof facultySchema>;

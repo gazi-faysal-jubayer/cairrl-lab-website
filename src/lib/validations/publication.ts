@@ -9,10 +9,10 @@ export const publicationSchema = z.object({
   abstract: z.string().optional(),
   doiOrLink: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
   pdfUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
-  featured: z.boolean().default(false),
-  researchAreaSlugs: z.array(z.string()).default([]),
+  featured: z.boolean().optional(),
+  researchAreaSlugs: z.array(z.string()).optional(),
   projectSlug: z.string().optional(),
-  status: z.enum(['DRAFT', 'PUBLISHED']).default('PUBLISHED'),
+  status: z.enum(['DRAFT', 'PUBLISHED']).optional(),
 });
 
 export type PublicationFormData = z.infer<typeof publicationSchema>;

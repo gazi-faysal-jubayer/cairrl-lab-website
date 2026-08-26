@@ -13,9 +13,12 @@ import { Input } from '@/components/ui/input';
 import { people } from '@/lib/data/people-data';
 import { cn } from '@/lib/utils';
 
+import { MemberDialog } from '@/components/dashboard/member-dialog';
+
 export default function DashboardPeoplePage() {
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const filteredMembers = people.filter((m) => {
     if (search.trim()) {
@@ -32,6 +35,12 @@ export default function DashboardPeoplePage() {
 
   return (
     <div className="space-y-6">
+      <MemberDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSuccess={() => alert('Member saved successfully!')}
+      />
+
       {/* ─── Header ─── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -46,7 +55,7 @@ export default function DashboardPeoplePage() {
         <Button
           size="sm"
           className="bg-brand-navy text-white hover:bg-brand-navy-hover"
-          onClick={() => alert('Add Member modal will connect to server actions in Phase 8.')}
+          onClick={() => setIsDialogOpen(true)}
         >
           <Plus className="mr-1.5 h-4 w-4" />
           Add Member
