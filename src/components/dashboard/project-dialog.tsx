@@ -18,6 +18,8 @@ export type EditableProject = {
   description: string;
   status: 'PLANNED' | 'ONGOING' | 'COMPLETED';
   coverImageUrl?: string | null;
+  researchAreaSlugs?: string[];
+  teamSlugs?: string[];
   contentStatus: 'DRAFT' | 'PUBLISHED';
 };
 
@@ -40,26 +42,33 @@ export function ProjectDialog({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
-    values: project ? {
-      title: project.title,
-      slug: project.slug,
-      summary: project.summary,
-      description: project.description,
-      status: project.status,
-      coverImageUrl: project.coverImageUrl || '',
-      contentStatus: project.contentStatus,
-    } : {
-      title: '',
-      slug: '',
-      summary: '',
-      description: '',
-      status: 'ONGOING',
-      coverImageUrl: '',
-      contentStatus: 'PUBLISHED',
-    },
+    values: project
+      ? {
+          title: project.title,
+          slug: project.slug,
+          summary: project.summary,
+          description: project.description,
+          status: project.status,
+          coverImageUrl: project.coverImageUrl || '',
+          researchAreaSlugs: project.researchAreaSlugs || ['robotics-and-control'],
+          teamSlugs: project.teamSlugs || [],
+          contentStatus: project.contentStatus,
+        }
+      : {
+          title: '',
+          slug: '',
+          summary: '',
+          description: '',
+          status: 'ONGOING',
+          coverImageUrl: '',
+          researchAreaSlugs: ['robotics-and-control'],
+          teamSlugs: [],
+          contentStatus: 'PUBLISHED',
+        },
   });
 
   if (!isOpen) return null;

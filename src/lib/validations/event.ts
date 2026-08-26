@@ -11,9 +11,9 @@ export const eventSchema = z.object({
   startAt: z.string().min(10, 'Start date and time is required'),
   endAt: z.string().optional(),
   location: z.string().optional(),
-  isOnline: z.boolean().default(false),
+  isOnline: z.boolean(),
   coverImageUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
-  status: z.enum(['DRAFT', 'PUBLISHED']).default('PUBLISHED'),
+  status: z.enum(['DRAFT', 'PUBLISHED']),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;

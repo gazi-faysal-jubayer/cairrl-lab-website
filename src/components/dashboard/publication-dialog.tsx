@@ -43,32 +43,35 @@ export function PublicationDialog({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<PublicationFormData>({
     resolver: zodResolver(publicationSchema),
-    values: publication ? {
-      title: publication.title,
-      authors: publication.authors,
-      venue: publication.venue,
-      year: publication.year,
-      type: publication.type,
-      abstract: publication.abstract || '',
-      doiOrLink: publication.doiOrLink || '',
-      pdfUrl: publication.pdfUrl || '',
-      featured: publication.featured,
-      status: publication.status || 'PUBLISHED',
-    } : {
-      title: '',
-      authors: '',
-      venue: '',
-      year: new Date().getFullYear(),
-      type: 'JOURNAL',
-      abstract: '',
-      doiOrLink: '',
-      pdfUrl: '',
-      featured: false,
-      status: 'PUBLISHED',
-    },
+    values: publication
+      ? {
+          title: publication.title,
+          authors: publication.authors,
+          venue: publication.venue,
+          year: publication.year,
+          type: publication.type,
+          abstract: publication.abstract || '',
+          doiOrLink: publication.doiOrLink || '',
+          pdfUrl: publication.pdfUrl || '',
+          featured: publication.featured,
+          status: publication.status || 'PUBLISHED',
+        }
+      : {
+          title: '',
+          authors: '',
+          venue: '',
+          year: new Date().getFullYear(),
+          type: 'JOURNAL',
+          abstract: '',
+          doiOrLink: '',
+          pdfUrl: '',
+          featured: false,
+          status: 'PUBLISHED',
+        },
   });
 
   if (!isOpen) return null;

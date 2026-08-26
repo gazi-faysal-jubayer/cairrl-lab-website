@@ -9,9 +9,9 @@ export const newsPostSchema = z.object({
   excerpt: z.string().min(10, 'Excerpt must be at least 10 characters'),
   body: z.string().min(20, 'Content body must be at least 20 characters'),
   coverImageUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
-  category: z.string().default('General'),
+  category: z.string().min(1, 'Category is required'),
   publishedAt: z.string().optional(),
-  status: z.enum(['DRAFT', 'PUBLISHED']).default('PUBLISHED'),
+  status: z.enum(['DRAFT', 'PUBLISHED']),
 });
 
 export type NewsPostFormData = z.infer<typeof newsPostSchema>;

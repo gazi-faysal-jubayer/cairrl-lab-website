@@ -19,13 +19,13 @@ export const projectSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Slug must only contain lowercase letters, numbers, and hyphens'),
   summary: z.string().min(10, 'Summary is required'),
   description: z.string().min(20, 'Description must be at least 20 characters'),
-  status: z.enum(['PLANNED', 'ONGOING', 'COMPLETED']).default('ONGOING'),
+  status: z.enum(['PLANNED', 'ONGOING', 'COMPLETED']),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   coverImageUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
   researchAreaSlugs: z.array(z.string()).min(1, 'Select at least one research area'),
-  teamSlugs: z.array(z.string()).default([]),
-  contentStatus: z.enum(['DRAFT', 'PUBLISHED']).default('PUBLISHED'),
+  teamSlugs: z.array(z.string()),
+  contentStatus: z.enum(['DRAFT', 'PUBLISHED']),
 });
 
 export type ResearchAreaFormData = z.infer<typeof researchAreaSchema>;

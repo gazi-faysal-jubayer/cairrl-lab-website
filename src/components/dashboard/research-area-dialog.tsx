@@ -14,6 +14,7 @@ export type EditableResearchArea = {
   id?: string;
   slug: string;
   name: string;
+  shortDescription?: string | null;
   description: string;
   coverImageUrl?: string | null;
 };
@@ -37,20 +38,26 @@ export function ResearchAreaDialog({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ResearchAreaFormData>({
     resolver: zodResolver(researchAreaSchema),
-    values: area ? {
-      name: area.name,
-      slug: area.slug,
-      description: area.description,
-      coverImageUrl: area.coverImageUrl || '',
-    } : {
-      name: '',
-      slug: '',
-      description: '',
-      coverImageUrl: '',
-    },
+    values: area
+      ? {
+          name: area.name,
+          slug: area.slug,
+          shortDescription:
+            area.shortDescription || area.description.slice(0, 80) || 'Research Area at CAIRRL',
+          description: area.description,
+          coverImageUrl: area.coverImageUrl || '',
+        }
+      : {
+          name: '',
+          slug: '',
+          shortDescription: '',
+          description: '',
+          coverImageUrl: '',
+        },
   });
 
   if (!isOpen) return null;
@@ -125,7 +132,19 @@ export function ResearchAreaDialog({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-ink">Description *</label>
+            <label className="mb-1 block text-xs font-semibold text-ink">Short Summary *</label>
+            <Input
+              {...register('shortDescription')}
+              placeholder="Brief summary sentence..."
+              className="text-xs"
+            />
+            {errors.shortDescription && (
+              <p className="text-[11px] text-destructive">{errors.shortDescription.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-ink">Full Description *</label>
             <Textarea
               {...register('description')}
               rows={4}

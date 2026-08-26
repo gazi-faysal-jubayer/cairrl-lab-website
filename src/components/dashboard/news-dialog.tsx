@@ -16,6 +16,7 @@ export type EditableNewsPost = {
   title: string;
   excerpt: string;
   body: string;
+  category?: string | null;
   coverImageUrl?: string | null;
   status: 'DRAFT' | 'PUBLISHED';
 };
@@ -42,24 +43,29 @@ export function NewsDialog({
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<NewsPostFormData>({
     resolver: zodResolver(newsPostSchema),
-    values: post ? {
-      title: post.title,
-      slug: post.slug,
-      excerpt: post.excerpt,
-      body: post.body,
-      coverImageUrl: post.coverImageUrl || '',
-      status: post.status,
-    } : {
-      title: '',
-      slug: '',
-      excerpt: '',
-      body: '',
-      coverImageUrl: '',
-      status: 'PUBLISHED',
-    },
+    values: post
+      ? {
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          body: post.body,
+          category: post.category || 'General',
+          coverImageUrl: post.coverImageUrl || '',
+          status: post.status,
+        }
+      : {
+          title: '',
+          slug: '',
+          excerpt: '',
+          body: '',
+          category: 'General',
+          coverImageUrl: '',
+          status: 'PUBLISHED',
+        },
   });
 
   if (!isOpen) return null;
@@ -222,15 +228,21 @@ export function NewsDialog({
             </div>
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-ink">Publish Status</label>
-            <select
-              {...register('status')}
-              className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-xs text-ink"
-            >
-              <option value="PUBLISHED">Published (Visible on site)</option>
-              <option value="DRAFT">Draft (Hidden)</option>
-            </select>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-ink">Category</label>
+              <Input {...register('category')} placeholder="e.g. Research, Event, Award" className="text-xs" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-ink">Publish Status</label>
+              <select
+                {...register('status')}
+                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-xs text-ink"
+              >
+                <option value="PUBLISHED">Published (Visible on site)</option>
+                <option value="DRAFT">Draft (Hidden)</option>
+              </select>
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 border-t border-border pt-4">
