@@ -5,36 +5,42 @@ import {
   FlaskConical,
   BookOpen,
   Newspaper,
+  Image as ImageIcon,
+  Mail,
   ArrowRight,
   PlusCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
-import { people } from '@/lib/data/people-data';
-import { researchAreas, projects } from '@/lib/data/research-data';
-import { publications } from '@/lib/data/publications-data';
-import { newsPosts, events } from '@/lib/data/news-events-data';
+import { getDashboardMetrics, getPublications } from '@/lib/db/queries';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Dashboard Overview',
 };
 
-export default function DashboardOverviewPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function DashboardOverviewPage() {
+  const [metrics, recentPubs] = await Promise.all([
+    getDashboardMetrics(),
+    getPublications(),
+  ]);
+
   const metricCards = [
     {
       title: 'Lab Members',
-      count: people.length,
-      label: '2 Faculty, 5 Students',
+      count: metrics.people,
+      label: `${metrics.faculty} Faculty, ${metrics.students} Students`,
       href: '/dashboard/people',
       icon: Users,
       color: 'text-accent-cyan',
       bgColor: 'bg-accent-cyan/10',
     },
     {
-      title: 'Research Areas',
-      count: researchAreas.length,
-      label: `${projects.length} Active Projects`,
+      title: 'Research & Projects',
+      count: metrics.researchAreas,
+      label: `${metrics.projects} Active Projects`,
       href: '/dashboard/research',
       icon: FlaskConical,
       color: 'text-accent-green',
@@ -42,7 +48,7 @@ export default function DashboardOverviewPage() {
     },
     {
       title: 'Publications',
-      count: publications.length,
+      count: metrics.publications,
       label: 'Peer-Reviewed & Preprints',
       href: '/dashboard/publications',
       icon: BookOpen,
@@ -51,12 +57,30 @@ export default function DashboardOverviewPage() {
     },
     {
       title: 'News & Events',
-      count: newsPosts.length + events.length,
-      label: `${newsPosts.length} News, ${events.length} Events`,
+      count: metrics.news + metrics.events,
+      label: `${metrics.news} News, ${metrics.events} Events`,
       href: '/dashboard/news',
       icon: Newspaper,
-      color: 'text-warning',
-      bgColor: 'bg-warning/10',
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-500/10',
+    },
+    {
+      title: 'Media Gallery',
+      count: metrics.gallery,
+      label: 'Photos in Neon S3',
+      href: '/dashboard/gallery',
+      icon: ImageIcon,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-500/10',
+    },
+    {
+      title: 'Contact Inquiries',
+      count: metrics.unreadMessages,
+      label: 'Unread Visitor Messages',
+      href: '/dashboard/messages',
+      icon: Mail,
+      color: 'text-rose-600',
+      bgColor: 'bg-rose-500/10',
     },
   ];
 
@@ -68,8 +92,8 @@ export default function DashboardOverviewPage() {
           <h1 className="font-heading text-2xl font-bold text-ink md:text-3xl">
             Dashboard Overview
           </h1>
-          <p className="mt-1 text-sm text-muted-text">
-            Welcome to CAIRRL Lab Content Management & Operations.
+          <p className="mt-1 text-xs text-muted-text">
+            CAIRRL Lab Live Database Command Center connected to Neon Postgres.
           </p>
         </div>
 
@@ -97,32 +121,32 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* ─── Metric Cards ─── */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {metricCards.map((card) => {
           const Icon = card.icon;
           return (
             <Link
               key={card.title}
               href={card.href}
-              className="group rounded-xl border border-border bg-surface p-6 shadow-sm transition-all duration-150 hover:border-accent-cyan/40 hover:shadow-md"
+              className="group rounded-xl border border-border bg-surface p-5 shadow-xs transition-all duration-150 hover:border-accent-cyan/40 hover:shadow-md"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-text">
                   {card.title}
                 </span>
                 <div className={cn('rounded-lg p-2.5', card.bgColor, card.color)}>
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                 </div>
               </div>
 
-              <div className="mt-4">
-                <p className="font-mono text-3xl font-bold tracking-tight text-ink">
+              <div className="mt-3">
+                <p className="font-mono text-2xl font-bold tracking-tight text-ink">
                   {card.count}
                 </p>
-                <p className="mt-1 text-xs text-muted-text">{card.label}</p>
+                <p className="mt-1 text-[11px] text-muted-text">{card.label}</p>
               </div>
 
-              <div className="mt-4 flex items-center gap-1 border-t border-border pt-3 text-xs font-semibold text-accent-cyan group-hover:underline">
+              <div className="mt-3 flex items-center gap-1 border-t border-border pt-2.5 text-xs font-semibold text-accent-cyan group-hover:underline">
                 <span>Manage {card.title}</span>
                 <ArrowRight className="h-3 w-3" />
               </div>
@@ -131,8 +155,8 @@ export default function DashboardOverviewPage() {
         })}
       </div>
 
-      {/* ─── Recent Lab Activity & Content Quick Panels ─── */}
-      <div className="grid gap-8 lg:grid-cols-2">
+      {/* ─── Recent Publications & Contact Messages ─── */}
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Publications */}
         <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
           <div className="flex items-center justify-between border-b border-border pb-4">
@@ -149,10 +173,10 @@ export default function DashboardOverviewPage() {
           </div>
 
           <div className="mt-4 divide-y divide-border">
-            {publications.slice(0, 3).map((pub) => (
+            {recentPubs.slice(0, 4).map((pub) => (
               <div key={pub.id} className="py-3">
                 <div className="flex items-center justify-between gap-2">
-                  <Badge variant="outline" className="text-[10px]">
+                  <Badge variant="outline" className="text-[9px]">
                     {pub.type}
                   </Badge>
                   <span className="font-mono text-xs text-accent-cyan">
@@ -162,59 +186,51 @@ export default function DashboardOverviewPage() {
                 <h3 className="mt-1 text-xs font-semibold text-ink">
                   {pub.title}
                 </h3>
-                <p className="text-[11px] text-muted-text">{pub.authors}</p>
+                <p className="text-[11px] text-muted-text line-clamp-1">{pub.authors}</p>
               </div>
             ))}
+            {recentPubs.length === 0 && (
+              <p className="py-6 text-center text-xs text-muted-text">
+                No publications in database.
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Recent News & Events */}
+        {/* Recent Contact Inquiries */}
         <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
           <div className="flex items-center justify-between border-b border-border pb-4">
             <h2 className="flex items-center gap-2 font-heading text-base font-semibold text-ink">
-              <Newspaper className="h-4 w-4 text-accent-cyan" />
-              Latest Announcements & Events
+              <Mail className="h-4 w-4 text-accent-cyan" />
+              Recent Visitor Inquiries
             </h2>
             <Link
-              href="/dashboard/news"
+              href="/dashboard/messages"
               className="text-xs font-semibold text-accent-cyan hover:underline"
             >
-              View All
+              Inbox ({metrics.unreadMessages} unread)
             </Link>
           </div>
 
           <div className="mt-4 divide-y divide-border">
-            {newsPosts.slice(0, 2).map((post) => (
-              <div key={post.slug} className="py-3">
+            {metrics.recentMessages.map((msg) => (
+              <div key={msg.id} className="py-3">
                 <div className="flex items-center justify-between gap-2">
-                  <Badge variant="secondary" className="bg-accent-cyan/10 text-[10px] text-accent-cyan">
-                    News
-                  </Badge>
-                  <span className="font-mono text-xs text-muted-text">
-                    {post.publishedAt}
+                  <span className="font-semibold text-xs text-ink">{msg.name}</span>
+                  <span className="font-mono text-[10px] text-muted-text">
+                    {new Date(msg.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <h3 className="mt-1 text-xs font-semibold text-ink">
-                  {post.title}
-                </h3>
+                <p className="mt-0.5 text-xs text-muted-text line-clamp-1">
+                  {msg.subject || msg.message}
+                </p>
               </div>
             ))}
-
-            {events.slice(0, 1).map((evt) => (
-              <div key={evt.slug} className="py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <Badge variant="secondary" className="bg-brand-navy/10 text-[10px] text-brand-navy">
-                    Event
-                  </Badge>
-                  <span className="font-mono text-xs text-muted-text">
-                    {evt.startAt.slice(0, 10)}
-                  </span>
-                </div>
-                <h3 className="mt-1 text-xs font-semibold text-ink">
-                  {evt.title}
-                </h3>
-              </div>
-            ))}
+            {metrics.recentMessages.length === 0 && (
+              <p className="py-6 text-center text-xs text-muted-text">
+                No contact inquiries yet.
+              </p>
+            )}
           </div>
         </div>
       </div>

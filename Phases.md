@@ -2,147 +2,112 @@
 
 **Project:** CAIRRL Lab Website — Centre for Advanced Intelligent Robotics Research Laboratory  
 **Institution:** Khulna University of Engineering & Technology (KUET), Khulna, Bangladesh  
-**Status:** Comprehensive Sequential Implementation Roadmap v2.0 (100% Detailed)  
+**Status:** Comprehensive Multi-Stage Implementation Plan v2.1 (Full End-to-End Database & Dashboard Sync)  
 **Last updated:** 2026-08-27  
 
-The build is structured into 11 sequential phases (Phase 0 through Phase 10). Each phase specifies clear goals, detailed task breakdowns, and strict exit criteria.
+---
+
+## 8-Stage Detailed Implementation Plan
+
+The remaining implementation work is organized into 8 explicit stages. Every stage connects the dashboard CRUD interface to real Server Actions and Neon Lakebase Postgres tables, with instant cache revalidation reflecting on public pages.
 
 ---
 
-## Phase 0 — Project Setup & Foundations
-**Goal:** Establish a clean, production-ready Next.js 16 App Router foundation with strict TypeScript and toolchains.
+### Stage 1 — Core Dashboard Data Layer & Shared CRUD Infrastructure
+**Goal:** Create shared query functions, reusable modal forms, delete confirmation dialogs, toast notification system, and the S3 file upload API.
 
-- [x] Scaffold Next.js 16 (App Router, Turbopack, TypeScript strict mode, `src/` directory).
-- [x] Configure Tailwind CSS v4, Lucide React icons, and shadcn/ui primitives.
-- [x] Configure ESLint and Prettier with zero initial warnings.
-- [x] Configure `.env.example` with template environment variables.
-- [x] Set up Prisma ORM and define base connection strings.
+- [ ] Add `getContactMessages()`, `getDashboardMetrics()`, and full query helpers to `src/lib/db/queries.ts`.
+- [ ] Implement Neon S3 upload API route (`src/app/api/upload/route.ts`) for direct media uploads.
+- [ ] Build reusable `DeleteConfirmDialog` component with loading state and action dispatch.
+- [ ] Ensure toast notification provider is active across the dashboard shell.
 
-**Exit Criteria:** Blank project compiles cleanly with `npm run build`; linter passes with 0 warnings.
-
----
-
-## Phase 1 — Design System, Tokens & Layout Shell
-**Goal:** Implement the visual language from `Design.md` as reusable tokens, styles, and layout wrappers.
-
-- [x] Configure CSS custom properties for all color tokens (`brand-navy`, `accent-cyan`, `accent-green`, `surface-muted`, `ink`).
-- [x] Import and configure Space Grotesk, Inter, and JetBrains Mono fonts via `next/font/google`.
-- [x] Build shared `Navbar` with sticky header, desktop links, active state indicators, and responsive mobile slide-out drawer.
-- [x] Build 3-column `Footer` with lab summary, navigation links, KUET affiliation, and social links.
-- [x] Build base UI primitives: `Container`, `SectionHeading`, `Button`, `Badge`, `Card`, and `AnimatedSection`.
-- [x] Wrap `(public)/layout.tsx` with the unified shell.
-
-**Exit Criteria:** Shell renders correctly on mobile, tablet, and desktop with proper fonts, colors, and responsive behavior.
+**Exit Criteria:** S3 upload API accepts files and returns public URLs; shared dialogs and query helpers compile cleanly.
 
 ---
 
-## Phase 2 — Static Public Pages v1 (Home, About, Join Us, Contact)
-**Goal:** Construct the foundational public storytelling and inquiry pages.
+### Stage 2 — People Management Module (Faculty & Students)
+**Goal:** Full end-to-end CRUD for Faculty and Student researchers connected to Neon Postgres.
 
-- [x] Build Home page structure: Hero section with grid overlay, Quick Stats counter, Research Highlights, and Call to Action.
-- [x] Build About page: Mission & Vision dual cards, Founding Story, Departmental Affiliation, and Research Philosophy.
-- [x] Build Join Us page: Undergrad thesis tracks, M.Sc./Ph.D. recruitment details, and application instructions.
-- [x] Build Contact page: Interactive form with Zod validation, honeypot spam protection, and institutional coordinates.
+- [ ] Complete Server Actions in `src/lib/actions/people-actions.ts` (`saveFacultyMember`, `deleteFacultyMember`, `saveStudentMember`, `deleteStudentMember`).
+- [ ] Rewrite `src/app/(dashboard)/dashboard/people/page.tsx` as a Server Component fetching live members from DB, or pass initial data to an interactive client table.
+- [ ] Build real `MemberDialog` with pre-filled edit mode, validation, photo URL/upload, and research area multi-select.
+- [ ] Connect delete buttons to real delete Server Actions with `DeleteConfirmDialog`.
+- [ ] Verify adding/editing/deleting a member immediately reflects on `/people`, `/people/[slug]`, and `/`.
 
-**Exit Criteria:** All four pages are fully responsive, accessible, and render semantic HTML with zero console errors.
-
----
-
-## Phase 3 — People Directory & Individual Profile System
-**Goal:** Present the lab's faculty and student researchers with individual dynamic profile pages strictly adhering to `PRD.md §13`.
-
-- [x] Build People directory (`/people`) with segmented sections for Faculty, Graduate Researchers, and Undergraduate Researchers.
-- [x] Build dynamic profile pages (`/people/[slug]`) with static parameters generation (`generateStaticParams`).
-- [x] Implement deterministic, name-hashed gradient avatar placeholders with initials.
-- [x] Integrate external academic links (Google Scholar, ResearchGate, LinkedIn, Email).
-- [x] Connect individual profiles to their respective published works.
-
-**Exit Criteria:** Profiles for both faculty (Md. Helal-An-Nahiyan, Priyo Nath Roy) and all 5 student researchers render correctly with accurate information and zero fabricated people.
+**Exit Criteria:** An administrator can create, update, or delete a faculty/student member from `/dashboard/people` and see changes immediately on public profile pages.
 
 ---
 
-## Phase 4 — Research Areas, Projects & Academic Publications
-**Goal:** Deliver a rich research catalogue covering focus areas, ongoing projects, and filterable publications.
+### Stage 3 — Publications Management Module
+**Goal:** Full end-to-end CRUD for academic publications with BibTeX, DOI, and featured toggling.
 
-- [x] Build Research Areas directory (`/research`) with custom icons and gradient card toppers.
-- [x] Build dynamic Research Area detail pages (`/research/[areaSlug]`) listing associated researchers, active projects, and papers.
-- [x] Build Project detail pages (`/research/projects/[projectSlug]`) with status badges and milestone descriptions.
-- [x] Build filterable Publications catalogue (`/publications`) with text search, type filters, year filters, area filters, collapsible abstracts, and BibTeX citation export.
+- [ ] Complete Server Actions in `src/lib/actions/publication-actions.ts` (`savePublication`, `deletePublication`, `toggleFeaturedPublication`).
+- [ ] Rewrite `src/app/(dashboard)/dashboard/publications/page.tsx` to read live publications from DB.
+- [ ] Build real `PublicationDialog` supporting Title, Authors, Venue, Year, Type, Abstract, DOI/Link, PDF URL, and Featured checkbox.
+- [ ] Connect delete action with confirmation modal.
+- [ ] Verify adding/editing/deleting a publication immediately updates `/publications` and `/` featured papers.
 
-**Exit Criteria:** Research areas accurately reflect faculty domains; publications catalogue supports fast search and faceted filtering.
-
----
-
-## Phase 5 — News Archive, Events Calendar & Visual Gallery
-**Goal:** Implement remaining public content sections for lab updates and media.
-
-- [x] Build News archive (`/news`) and article reading view (`/news/[slug]`) with rich text body rendering.
-- [x] Build Events directory (`/events`) with automatic separation of Upcoming vs. Past events and calendar date badges.
-- [x] Build Event detail page (`/events/[slug]`) with schedule and venue information.
-- [x] Build Gallery (`/gallery`) with CSS masonry layout, category tabs, and interactive modal lightbox viewer.
-
-**Exit Criteria:** News, Events, and Gallery render correctly with smooth lightbox viewer and category filtering.
+**Exit Criteria:** Adding a paper in the dashboard immediately renders in `/publications` with functional search, filtering, abstract expansion, and BibTeX copying.
 
 ---
 
-## Phase 6 — Database Layer & Cloud Infrastructure (Neon Postgres & S3)
-**Goal:** Move from local static data to a live, cloud-hosted relational database and object store.
+### Stage 4 — Research Areas & Projects Management Module
+**Goal:** Full end-to-end CRUD for research focus areas and experimental projects.
 
-- [x] Deploy Prisma schema with 11 relational models to Neon Lakebase Postgres (`noisy-moon-93340476`).
-- [x] Configure connection pooling (`DATABASE_URL`) and direct migration URL (`DIRECT_URL`).
-- [x] Configure Neon S3-compatible object storage (`cairrl` bucket, `us-east-2`, `public_read` policy).
-- [x] Write and execute automated seed script (`prisma/seed.ts` & `scripts/seed-neon.mjs`) strictly populating the real seed roster and research areas from PRD §13.
-- [x] Implement centralized database query layer (`src/lib/db/queries.ts`) with React `cache()` deduplication.
+- [ ] Complete Server Actions in `src/lib/actions/research-actions.ts` (`saveResearchArea`, `deleteResearchArea`, `saveProject`, `deleteProject`).
+- [ ] Rewrite `src/app/(dashboard)/dashboard/research/page.tsx` with live database tabs for Areas and Projects.
+- [ ] Build `ResearchAreaDialog` (Name, Slug, Description, Cover Image).
+- [ ] Build `ProjectDialog` (Title, Slug, Summary, Rich Description, Status enum, Start/End Dates, Cover Image, Area links).
+- [ ] Verify changes reflect immediately on `/research`, `/research/[areaSlug]`, and `/research/projects/[slug]`.
 
-**Exit Criteria:** Neon Postgres contains all seeded tables; S3 client is initialized and verified; Prisma client singleton is type-safe.
-
----
-
-## Phase 7 — Authentication & Dashboard Shell
-**Goal:** Provide secure, authenticated access for lab members to manage website content.
-
-- [x] Build administrative login page (`/login`) with session management.
-- [x] Implement server-side security guards (`requireUser()`, `requireAdmin()`) in `src/lib/auth-guard.ts`.
-- [x] Build protected dashboard layout (`src/app/(dashboard)/layout.tsx`) with sidebar navigation and user status.
-- [x] Guard all `/dashboard/*` routes so unauthenticated requests immediately redirect to `/login`.
-
-**Exit Criteria:** Valid credentials allow entry into `/dashboard`; unauthenticated requests are blocked; layout is responsive.
+**Exit Criteria:** Full CRUD operational for areas and projects with live public page synchronization.
 
 ---
 
-## Phase 8 — Administrative CRUD: People, Research & Publications
-**Goal:** Enable lab admins to manage core research identity data through intuitive management interfaces.
+### Stage 5 — News & Events Management Modules
+**Goal:** Full end-to-end CRUD for news articles and seminar/event schedules.
 
-- [x] Build People management interface (`/dashboard/people`) for Faculty and Student CRUD with photo upload support.
-- [x] Build Research Areas and Projects management (`/dashboard/research`) with slug generation and status toggling.
-- [x] Build Publications catalogue editor (`/dashboard/publications`) with type categorization and DOI management.
-- [x] Wire image uploads to Neon S3 storage with immediate public HTTPS URL generation.
+- [ ] Complete Server Actions in `src/lib/actions/news-actions.ts` (`saveNewsPost`, `deleteNewsPost`).
+- [ ] Complete Server Actions in `src/lib/actions/event-actions.ts` (`saveEvent`, `deleteEvent`).
+- [ ] Rewrite `src/app/(dashboard)/dashboard/news/page.tsx` with live news table, Add/Edit modal, and draft/published status toggle.
+- [ ] Rewrite `src/app/(dashboard)/dashboard/events/page.tsx` with live events table, datetime pickers, event type dropdown, and venue/online inputs.
+- [ ] Verify public reflection on `/news`, `/news/[slug]`, `/events`, `/events/[slug]`, and homepage.
 
-**Exit Criteria:** Lab admin can add/edit a researcher or publication and see it reflected immediately on the public site.
-
----
-
-## Phase 9 — Administrative CRUD: News, Events, Gallery, Messages & Settings
-**Goal:** Complete the content management surface and administrative inbox.
-
-- [x] Build News post manager (`/dashboard/news`) with Tiptap rich-text editor and cover image uploader.
-- [x] Build Event scheduler (`/dashboard/events`) with date-time configuration and venue selector.
-- [x] Build Media Gallery manager (`/dashboard/gallery`) with batch upload to S3 and category tagging.
-- [x] Build Contact Messages inbox (`/dashboard/messages`) with read/unread tracking and inquiry details.
-- [x] Build Global Site Settings editor (`/dashboard/settings`) for lab name, mission text, and social URLs.
-
-**Exit Criteria:** Every dynamic section of the website is manageable via the dashboard without touching code.
+**Exit Criteria:** Lab admin can publish a news article or schedule a seminar through the dashboard and view it instantly on public pages.
 
 ---
 
-## Phase 10 — Full Live Database Integration, Polish, SEO & Launch
-**Goal:** Fully wire every public page to live Neon Postgres queries, optimize SEO, and ensure rock-solid production readiness.
+### Stage 6 — Media Gallery & Neon S3 Upload Module
+**Goal:** Full end-to-end media gallery management with direct S3 upload to `cairrl` bucket.
 
-- [x] Replace all static data imports across all public pages with live queries from `src/lib/db/queries.ts`.
-- [x] Implement live dynamic metric counters on Homepage and Research overview.
-- [x] Implement dynamic OpenGraph metadata, `robots.txt`, and XML sitemap (`sitemap.ts`).
-- [x] Implement custom 404 page (`not-found.tsx`) and error boundary (`error.tsx`).
-- [x] Verify complete type-check (`npm run build`) with 0 type errors and 0 lint warnings.
-- [x] Update `Memory.md` and documentation suite to reflect the completed state.
+- [ ] Complete Server Actions in `src/lib/actions/gallery-actions.ts` (`saveGalleryItem`, `deleteGalleryItem`).
+- [ ] Rewrite `src/app/(dashboard)/dashboard/gallery/page.tsx` with live media grid, category tagging, caption editing, and direct S3 upload dropzone.
+- [ ] Verify image deletion removes records and revalidates `/gallery`.
+- [ ] Verify public masonry gallery and lightbox display new uploaded photos.
 
-**Exit Criteria:** All 47 routes compile cleanly with SSG/ISR; live data flows from Neon Postgres; site is 100% production-ready.
+**Exit Criteria:** Uploading a photo via the dashboard persists to Neon S3 and appears instantly on the public `/gallery` page.
+
+---
+
+### Stage 7 — Contact Messages Inbox & Global Site Settings
+**Goal:** Real-time inquiry management and singleton site settings editor.
+
+- [ ] Implement `src/lib/actions/message-actions.ts` (`markMessageRead`, `deleteMessage`).
+- [ ] Rewrite `src/app/(dashboard)/dashboard/messages/page.tsx` with live inquiries from `ContactMessage` table, unread badges, message detail reader, and delete actions.
+- [ ] Complete `src/lib/actions/settings-actions.ts` (`updateSiteSettings`).
+- [ ] Rewrite `src/app/(dashboard)/dashboard/settings/page.tsx` with pre-filled form values from `SiteSetting` singleton and real save action.
+- [ ] Verify public reflection across `/contact`, `/about`, `/join-us`, and footer coordinates.
+
+**Exit Criteria:** Submitting a message on `/contact` appears in `/dashboard/messages`; updating settings modifies homepage and footer text.
+
+---
+
+### Stage 8 — Dashboard Overview & Final End-to-End Verification
+**Goal:** Live analytics dashboard and rock-solid build verification.
+
+- [ ] Rewrite `src/app/(dashboard)/dashboard/page.tsx` to compute live metrics from all database tables (total members, publications, projects, unread messages, recent activity feed).
+- [ ] Perform end-to-end testing across every entity CRUD flow.
+- [ ] Run `npm run lint` and `npm run build` to verify 0 errors and 0 warnings.
+- [ ] Update `Memory.md` with final verification status.
+
+**Exit Criteria:** Dashboard displays accurate real-time metrics; all routes pass production build with zero errors.

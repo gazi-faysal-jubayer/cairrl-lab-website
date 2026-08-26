@@ -1,8 +1,6 @@
 /**
- * Centralized database query functions for all public pages.
- * Every public Server Component should import from here rather than
- * using raw Prisma queries directly, so caching and revalidation
- * are consistent across the site.
+ * Centralized database query functions for both Public pages and Dashboard CMS.
+ * Uses React cache() for request-level query deduplication.
  */
 import { cache } from 'react';
 import { prisma } from '@/lib/prisma';
@@ -16,7 +14,7 @@ export const getSiteSettings = cache(async () => {
   return settings;
 });
 
-// ─── People ──────────────────────────────────────────────────────────────────
+// ─── People (Public) ─────────────────────────────────────────────────────────
 
 export const getFacultyMembers = cache(async () => {
   return prisma.facultyMember.findMany({
@@ -46,6 +44,22 @@ export const getStudentBySlug = cache(async (slug: string) => {
     where: { slug, status: 'PUBLISHED' },
     include: { researchAreas: true },
   });
+});
+
+// ─── People (Dashboard - All records including Drafts) ────────────────────────
+
+export const getAllDashboardPeople = cache(async () => {
+  const [faculty, students] = await Promise.all([
+    prisma.facultyMember.findMany({
+      include: { researchAreas: true },
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+    }),
+    prisma.studentMember.findMany({
+      include: { researchAreas: true },
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+    }),
+  ]);
+  return { faculty, students };
 });
 
 // ─── Research Areas ──────────────────────────────────────────────────────────
@@ -84,6 +98,13 @@ export const getProjects = cache(async () => {
   });
 });
 
+export const getAllDashboardProjects = cache(async () => {
+  return prisma.project.findMany({
+    include: { researchAreas: true },
+    orderBy: { createdAt: 'desc' },
+  });
+});
+
 export const getProjectBySlug = cache(async (slug: string) => {
   return prisma.project.findUnique({
     where: { slug, contentStatus: 'PUBLISHED' },
@@ -105,6 +126,13 @@ export const getPublications = cache(async () => {
   });
 });
 
+export const getAllDashboardPublications = cache(async () => {
+  return prisma.publication.findMany({
+    include: { researchAreas: true },
+    orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+  });
+});
+
 export const getFeaturedPublications = cache(async () => {
   return prisma.publication.findMany({
     where: { status: 'PUBLISHED', featured: true },
@@ -120,6 +148,12 @@ export const getNewsPosts = cache(async () => {
   return prisma.newsPost.findMany({
     where: { status: 'PUBLISHED' },
     orderBy: { publishedAt: 'desc' },
+  });
+});
+
+export const getAllDashboardNews = cache(async () => {
+  return prisma.newsPost.findMany({
+    orderBy: { createdAt: 'desc' },
   });
 });
 
@@ -142,6 +176,12 @@ export const getNewsPostBySlug = cache(async (slug: string) => {
 export const getEvents = cache(async () => {
   return prisma.event.findMany({
     where: { status: 'PUBLISHED' },
+    orderBy: { startAt: 'desc' },
+  });
+});
+
+export const getAllDashboardEvents = cache(async () => {
+  return prisma.event.findMany({
     orderBy: { startAt: 'desc' },
   });
 });
@@ -174,11 +214,17 @@ export const getGalleryItems = cache(async () => {
 
 // ─── Contact Messages ────────────────────────────────────────────────────────
 
+export const getContactMessages = cache(async () => {
+  return prisma.contactMessage.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
+});
+
 export const getUnreadMessageCount = cache(async () => {
   return prisma.contactMessage.count({ where: { read: false } });
 });
 
-// ─── Aggregate Stats (for homepage) ──────────────────────────────────────────
+// ─── Aggregate Metrics for Dashboard & Public ────────────────────────────────
 
 export const getQuickStats = cache(async () => {
   const [facultyCount, studentCount, researchAreaCount, projectCount, publicationCount] =
@@ -196,6 +242,46 @@ export const getQuickStats = cache(async () => {
     researchAreas: researchAreaCount,
     projects: projectCount,
     publications: publicationCount,
+  };
+});
+
+export const getDashboardMetrics = cache(async () => {
+  const [
+    facultyCount,
+    studentCount,
+    researchAreaCount,
+    projectCount,
+    publicationCount,
+    newsCount,
+    eventCount,
+    galleryCount,
+    unreadMessageCount,
+    recentMessages,
+  ] = await Promise.all([
+    prisma.facultyMember.count(),
+    prisma.studentMember.count(),
+    prisma.researchArea.count(),
+    prisma.project.count(),
+    prisma.publication.count(),
+    prisma.newsPost.count(),
+    prisma.event.count(),
+    prisma.galleryItem.count(),
+    prisma.contactMessage.count({ where: { read: false } }),
+    prisma.contactMessage.findMany({ take: 5, orderBy: { createdAt: 'desc' } }),
+  ]);
+
+  return {
+    people: facultyCount + studentCount,
+    faculty: facultyCount,
+    students: studentCount,
+    researchAreas: researchAreaCount,
+    projects: projectCount,
+    publications: publicationCount,
+    news: newsCount,
+    events: eventCount,
+    gallery: galleryCount,
+    unreadMessages: unreadMessageCount,
+    recentMessages,
   };
 });
 
