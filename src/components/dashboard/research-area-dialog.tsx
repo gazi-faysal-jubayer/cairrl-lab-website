@@ -64,7 +64,7 @@ export function ResearchAreaDialog({
 
   const onSubmit = async (data: ResearchAreaFormData) => {
     setErrorMsg(null);
-    const res = await saveResearchArea(data);
+    const res = await saveResearchArea(data, area?.id);
     if (res.success) {
       reset();
       onSuccess?.();
@@ -124,7 +124,6 @@ export function ResearchAreaDialog({
               {...register('slug')}
               placeholder="e.g. robotics-and-control"
               className="text-xs font-mono"
-              disabled={isEditing}
             />
             {errors.slug && (
               <p className="text-[11px] text-destructive">{errors.slug.message}</p>

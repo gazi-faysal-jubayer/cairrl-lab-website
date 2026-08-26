@@ -7,7 +7,8 @@ import { requireAdmin } from '@/lib/auth-guard';
 import type { ActionResult } from './people-actions';
 
 export async function saveEvent(
-  data: EventFormData
+  data: EventFormData,
+  id?: string
 ): Promise<ActionResult> {
   try {
     await requireAdmin();
@@ -22,32 +23,52 @@ export async function saveEvent(
 
     const val = parsed.data;
 
-    await prisma.event.upsert({
-      where: { slug: val.slug },
-      update: {
-        title: val.title,
-        type: val.type,
-        description: val.description,
-        startAt: new Date(val.startAt),
-        endAt: val.endAt ? new Date(val.endAt) : null,
-        location: val.location ?? null,
-        isOnline: val.isOnline ?? false,
-        coverImageUrl: val.coverImageUrl ?? null,
-        status: val.status,
-      },
-      create: {
+    const existing = await prisma.event.findFirst({
+      where: {
         slug: val.slug,
-        title: val.title,
-        type: val.type,
-        description: val.description,
-        startAt: new Date(val.startAt),
-        endAt: val.endAt ? new Date(val.endAt) : null,
-        location: val.location ?? null,
-        isOnline: val.isOnline ?? false,
-        coverImageUrl: val.coverImageUrl ?? null,
-        status: val.status,
+        ...(id ? { NOT: { id } } : {}),
       },
     });
+
+    if (existing) {
+      return {
+        success: false,
+        error: `Slug "${val.slug}" is already in use by another event.`,
+      };
+    }
+
+    if (id) {
+      await prisma.event.update({
+        where: { id },
+        data: {
+          title: val.title,
+          slug: val.slug,
+          type: val.type,
+          description: val.description,
+          startAt: new Date(val.startAt),
+          endAt: val.endAt ? new Date(val.endAt) : null,
+          location: val.location ?? null,
+          isOnline: val.isOnline ?? false,
+          coverImageUrl: val.coverImageUrl ?? null,
+          status: val.status,
+        },
+      });
+    } else {
+      await prisma.event.create({
+        data: {
+          slug: val.slug,
+          title: val.title,
+          type: val.type,
+          description: val.description,
+          startAt: new Date(val.startAt),
+          endAt: val.endAt ? new Date(val.endAt) : null,
+          location: val.location ?? null,
+          isOnline: val.isOnline ?? false,
+          coverImageUrl: val.coverImageUrl ?? null,
+          status: val.status,
+        },
+      });
+    }
 
     revalidatePath('/events');
     revalidatePath(`/events/${val.slug}`);

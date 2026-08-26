@@ -42,6 +42,7 @@ This document is the single source of truth for the ongoing engineering status, 
 
 ## 4. Completed Work Log
 
+- **2026-08-27** — Added full capability to edit slugs across all dashboard dialogs (Lab Members, Research Areas, Projects, News Posts, Events) with database uniqueness validation and record ID targeting.
 - **2026-08-27** — Updated all 6 core planning documents (`PRD.md`, `Architecture.md`, `Rules.md`, `Design.md`, `Phases.md`, `Memory.md`) with explicit, multi-stage implementation blueprints for connecting every single dashboard module to live Neon Postgres tables and Server Actions.
 - **2026-08-27** — Built centralized query layer `src/lib/db/queries.ts` with React `cache()` deduplication. Connected public pages to live database queries.
 - **2026-08-27** — Integrated live Neon Lakebase Postgres (`noisy-moon-93340476`) and Neon S3 Object Storage (`cairrl` bucket, `us-east-2`).

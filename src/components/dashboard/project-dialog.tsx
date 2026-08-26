@@ -75,7 +75,7 @@ export function ProjectDialog({
 
   const onSubmit = async (data: ProjectFormData) => {
     setErrorMsg(null);
-    const res = await saveProject(data);
+    const res = await saveProject(data, project?.id);
     if (res.success) {
       reset();
       onSuccess?.();
@@ -135,7 +135,6 @@ export function ProjectDialog({
               {...register('slug')}
               placeholder="e.g. autonomous-robotic-manipulator"
               className="text-xs font-mono"
-              disabled={isEditing}
             />
             {errors.slug && (
               <p className="text-[11px] text-destructive">{errors.slug.message}</p>

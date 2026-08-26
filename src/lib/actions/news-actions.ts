@@ -7,7 +7,8 @@ import { requireAdmin } from '@/lib/auth-guard';
 import type { ActionResult } from './people-actions';
 
 export async function saveNewsPost(
-  data: NewsPostFormData
+  data: NewsPostFormData,
+  id?: string
 ): Promise<ActionResult> {
   try {
     await requireAdmin();
@@ -22,24 +23,44 @@ export async function saveNewsPost(
 
     const val = parsed.data;
 
-    await prisma.newsPost.upsert({
-      where: { slug: val.slug },
-      update: {
-        title: val.title,
-        excerpt: val.excerpt,
-        body: val.body,
-        coverImageUrl: val.coverImageUrl ?? null,
-        status: val.status,
-      },
-      create: {
+    const existing = await prisma.newsPost.findFirst({
+      where: {
         slug: val.slug,
-        title: val.title,
-        excerpt: val.excerpt,
-        body: val.body,
-        coverImageUrl: val.coverImageUrl ?? null,
-        status: val.status,
+        ...(id ? { NOT: { id } } : {}),
       },
     });
+
+    if (existing) {
+      return {
+        success: false,
+        error: `Slug "${val.slug}" is already in use by another news post.`,
+      };
+    }
+
+    if (id) {
+      await prisma.newsPost.update({
+        where: { id },
+        data: {
+          title: val.title,
+          slug: val.slug,
+          excerpt: val.excerpt,
+          body: val.body,
+          coverImageUrl: val.coverImageUrl ?? null,
+          status: val.status,
+        },
+      });
+    } else {
+      await prisma.newsPost.create({
+        data: {
+          slug: val.slug,
+          title: val.title,
+          excerpt: val.excerpt,
+          body: val.body,
+          coverImageUrl: val.coverImageUrl ?? null,
+          status: val.status,
+        },
+      });
+    }
 
     revalidatePath('/news');
     revalidatePath(`/news/${val.slug}`);

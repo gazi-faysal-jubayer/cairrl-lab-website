@@ -102,7 +102,10 @@ export function NewsDialog({
 
   const onSubmit = async (data: NewsPostFormData) => {
     setErrorMsg(null);
-    const res = await saveNewsPost({ ...data, coverImageUrl: coverUrl || data.coverImageUrl });
+    const res = await saveNewsPost(
+      { ...data, coverImageUrl: coverUrl || data.coverImageUrl },
+      post?.id
+    );
     if (res.success) {
       reset();
       onSuccess?.();
@@ -162,7 +165,6 @@ export function NewsDialog({
               {...register('slug')}
               placeholder="e.g. cairrl-lab-showcases-drone"
               className="text-xs font-mono"
-              disabled={isEditing}
             />
             {errors.slug && (
               <p className="text-[11px] text-destructive">{errors.slug.message}</p>

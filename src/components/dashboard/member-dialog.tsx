@@ -141,7 +141,10 @@ export function MemberDialog({ isOpen, member, onClose, onSuccess }: MemberDialo
 
   const onFacultySubmit = async (data: FacultyFormData) => {
     setErrorMsg(null);
-    const res = await saveFacultyMember({ ...data, photoUrl: photoUrl || data.photoUrl });
+    const res = await saveFacultyMember(
+      { ...data, photoUrl: photoUrl || data.photoUrl },
+      member?.id
+    );
     if (res.success) {
       facultyForm.reset();
       onSuccess?.();
@@ -153,7 +156,10 @@ export function MemberDialog({ isOpen, member, onClose, onSuccess }: MemberDialo
 
   const onStudentSubmit = async (data: StudentFormData) => {
     setErrorMsg(null);
-    const res = await saveStudentMember({ ...data, photoUrl: photoUrl || data.photoUrl });
+    const res = await saveStudentMember(
+      { ...data, photoUrl: photoUrl || data.photoUrl },
+      member?.id
+    );
     if (res.success) {
       studentForm.reset();
       onSuccess?.();
@@ -282,7 +288,6 @@ export function MemberDialog({ isOpen, member, onClose, onSuccess }: MemberDialo
                   {...facultyForm.register('slug')}
                   placeholder="e.g. md-helal-an-nahiyan"
                   className="text-xs font-mono"
-                  disabled={isEditing}
                 />
                 {facultyForm.formState.errors.slug && (
                   <p className="text-[11px] text-destructive">{facultyForm.formState.errors.slug.message}</p>
@@ -418,7 +423,6 @@ export function MemberDialog({ isOpen, member, onClose, onSuccess }: MemberDialo
                   {...studentForm.register('slug')}
                   placeholder="e.g. hafizur-rahman"
                   className="text-xs font-mono"
-                  disabled={isEditing}
                 />
                 {studentForm.formState.errors.slug && (
                   <p className="text-[11px] text-destructive">{studentForm.formState.errors.slug.message}</p>

@@ -74,7 +74,7 @@ export function EventDialog({
 
   const onSubmit = async (data: EventFormData) => {
     setErrorMsg(null);
-    const res = await saveEvent(data);
+    const res = await saveEvent(data, event?.id);
     if (res.success) {
       reset();
       onSuccess?.();
@@ -134,7 +134,6 @@ export function EventDialog({
               {...register('slug')}
               placeholder="e.g. adaptive-control-seminar"
               className="text-xs font-mono"
-              disabled={isEditing}
             />
             {errors.slug && (
               <p className="text-[11px] text-destructive">{errors.slug.message}</p>

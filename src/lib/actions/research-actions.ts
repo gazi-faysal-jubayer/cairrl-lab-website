@@ -12,7 +12,8 @@ import { requireAdmin } from '@/lib/auth-guard';
 import type { ActionResult } from './people-actions';
 
 export async function saveResearchArea(
-  data: ResearchAreaFormData
+  data: ResearchAreaFormData,
+  id?: string
 ): Promise<ActionResult> {
   try {
     await requireAdmin();
@@ -27,20 +28,40 @@ export async function saveResearchArea(
 
     const val = parsed.data;
 
-    await prisma.researchArea.upsert({
-      where: { slug: val.slug },
-      update: {
-        name: val.name,
-        description: val.description,
-        coverImageUrl: val.coverImageUrl ?? null,
-      },
-      create: {
+    const existing = await prisma.researchArea.findFirst({
+      where: {
         slug: val.slug,
-        name: val.name,
-        description: val.description,
-        coverImageUrl: val.coverImageUrl ?? null,
+        ...(id ? { NOT: { id } } : {}),
       },
     });
+
+    if (existing) {
+      return {
+        success: false,
+        error: `Slug "${val.slug}" is already in use by another research area.`,
+      };
+    }
+
+    if (id) {
+      await prisma.researchArea.update({
+        where: { id },
+        data: {
+          name: val.name,
+          slug: val.slug,
+          description: val.description,
+          coverImageUrl: val.coverImageUrl ?? null,
+        },
+      });
+    } else {
+      await prisma.researchArea.create({
+        data: {
+          slug: val.slug,
+          name: val.name,
+          description: val.description,
+          coverImageUrl: val.coverImageUrl ?? null,
+        },
+      });
+    }
 
     revalidatePath('/research');
     revalidatePath(`/research/${val.slug}`);
@@ -81,7 +102,8 @@ export async function deleteResearchArea(id: string): Promise<ActionResult> {
 }
 
 export async function saveProject(
-  data: ProjectFormData
+  data: ProjectFormData,
+  id?: string
 ): Promise<ActionResult> {
   try {
     await requireAdmin();
@@ -96,26 +118,46 @@ export async function saveProject(
 
     const val = parsed.data;
 
-    await prisma.project.upsert({
-      where: { slug: val.slug },
-      update: {
-        title: val.title,
-        summary: val.summary,
-        description: val.description,
-        status: val.status,
-        coverImageUrl: val.coverImageUrl ?? null,
-        contentStatus: val.contentStatus,
-      },
-      create: {
+    const existing = await prisma.project.findFirst({
+      where: {
         slug: val.slug,
-        title: val.title,
-        summary: val.summary,
-        description: val.description,
-        status: val.status,
-        coverImageUrl: val.coverImageUrl ?? null,
-        contentStatus: val.contentStatus,
+        ...(id ? { NOT: { id } } : {}),
       },
     });
+
+    if (existing) {
+      return {
+        success: false,
+        error: `Slug "${val.slug}" is already in use by another project.`,
+      };
+    }
+
+    if (id) {
+      await prisma.project.update({
+        where: { id },
+        data: {
+          title: val.title,
+          slug: val.slug,
+          summary: val.summary,
+          description: val.description,
+          status: val.status,
+          coverImageUrl: val.coverImageUrl ?? null,
+          contentStatus: val.contentStatus,
+        },
+      });
+    } else {
+      await prisma.project.create({
+        data: {
+          slug: val.slug,
+          title: val.title,
+          summary: val.summary,
+          description: val.description,
+          status: val.status,
+          coverImageUrl: val.coverImageUrl ?? null,
+          contentStatus: val.contentStatus,
+        },
+      });
+    }
 
     revalidatePath('/research');
     revalidatePath(`/research/projects/${val.slug}`);

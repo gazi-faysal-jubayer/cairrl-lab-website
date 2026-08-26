@@ -11,7 +11,10 @@ export interface ActionResult {
   error?: string;
 }
 
-export async function saveFacultyMember(data: FacultyFormData): Promise<ActionResult> {
+export async function saveFacultyMember(
+  data: FacultyFormData,
+  id?: string
+): Promise<ActionResult> {
   try {
     await requireAdmin();
 
@@ -22,36 +25,54 @@ export async function saveFacultyMember(data: FacultyFormData): Promise<ActionRe
 
     const val = parsed.data;
 
-    await prisma.facultyMember.upsert({
-      where: { slug: val.slug },
-      update: {
-        name: val.name,
-        designation: val.designation,
-        department: val.department,
-        bio: val.bio ?? null,
-        email: val.email ?? null,
-        photoUrl: val.photoUrl ?? null,
-        googleScholarUrl: val.googleScholarUrl ?? null,
-        researchGateUrl: val.researchGateUrl ?? null,
-        linkedinUrl: val.linkedinUrl ?? null,
-        order: val.order ?? 0,
-        status: val.status,
-      },
-      create: {
-        name: val.name,
+    // Check slug uniqueness
+    const existing = await prisma.facultyMember.findFirst({
+      where: {
         slug: val.slug,
-        designation: val.designation,
-        department: val.department,
-        bio: val.bio ?? null,
-        email: val.email ?? null,
-        photoUrl: val.photoUrl ?? null,
-        googleScholarUrl: val.googleScholarUrl ?? null,
-        researchGateUrl: val.researchGateUrl ?? null,
-        linkedinUrl: val.linkedinUrl ?? null,
-        order: val.order ?? 0,
-        status: val.status,
+        ...(id ? { NOT: { id } } : {}),
       },
     });
+
+    if (existing) {
+      return { success: false, error: `Slug "${val.slug}" is already used by another faculty member.` };
+    }
+
+    if (id) {
+      await prisma.facultyMember.update({
+        where: { id },
+        data: {
+          name: val.name,
+          slug: val.slug,
+          designation: val.designation,
+          department: val.department,
+          bio: val.bio ?? null,
+          email: val.email ?? null,
+          photoUrl: val.photoUrl ?? null,
+          googleScholarUrl: val.googleScholarUrl ?? null,
+          researchGateUrl: val.researchGateUrl ?? null,
+          linkedinUrl: val.linkedinUrl ?? null,
+          order: val.order ?? 0,
+          status: val.status,
+        },
+      });
+    } else {
+      await prisma.facultyMember.create({
+        data: {
+          name: val.name,
+          slug: val.slug,
+          designation: val.designation,
+          department: val.department,
+          bio: val.bio ?? null,
+          email: val.email ?? null,
+          photoUrl: val.photoUrl ?? null,
+          googleScholarUrl: val.googleScholarUrl ?? null,
+          researchGateUrl: val.researchGateUrl ?? null,
+          linkedinUrl: val.linkedinUrl ?? null,
+          order: val.order ?? 0,
+          status: val.status,
+        },
+      });
+    }
 
     revalidatePath('/people');
     revalidatePath(`/people/${val.slug}`);
@@ -85,7 +106,10 @@ export async function deleteFacultyMember(id: string): Promise<ActionResult> {
   }
 }
 
-export async function saveStudentMember(data: StudentFormData): Promise<ActionResult> {
+export async function saveStudentMember(
+  data: StudentFormData,
+  id?: string
+): Promise<ActionResult> {
   try {
     await requireAdmin();
 
@@ -96,36 +120,54 @@ export async function saveStudentMember(data: StudentFormData): Promise<ActionRe
 
     const val = parsed.data;
 
-    await prisma.studentMember.upsert({
-      where: { slug: val.slug },
-      update: {
-        name: val.name,
-        level: val.level,
-        program: val.program ?? null,
-        batchOrYear: val.batchOrYear ?? null,
-        bio: val.bio ?? null,
-        email: val.email ?? null,
-        photoUrl: val.photoUrl ?? null,
-        googleScholarUrl: val.googleScholarUrl ?? null,
-        linkedinUrl: val.linkedinUrl ?? null,
-        order: val.order ?? 0,
-        status: val.status,
-      },
-      create: {
-        name: val.name,
+    // Check slug uniqueness
+    const existing = await prisma.studentMember.findFirst({
+      where: {
         slug: val.slug,
-        level: val.level,
-        program: val.program ?? null,
-        batchOrYear: val.batchOrYear ?? null,
-        bio: val.bio ?? null,
-        email: val.email ?? null,
-        photoUrl: val.photoUrl ?? null,
-        googleScholarUrl: val.googleScholarUrl ?? null,
-        linkedinUrl: val.linkedinUrl ?? null,
-        order: val.order ?? 0,
-        status: val.status,
+        ...(id ? { NOT: { id } } : {}),
       },
     });
+
+    if (existing) {
+      return { success: false, error: `Slug "${val.slug}" is already used by another student member.` };
+    }
+
+    if (id) {
+      await prisma.studentMember.update({
+        where: { id },
+        data: {
+          name: val.name,
+          slug: val.slug,
+          level: val.level,
+          program: val.program ?? null,
+          batchOrYear: val.batchOrYear ?? null,
+          bio: val.bio ?? null,
+          email: val.email ?? null,
+          photoUrl: val.photoUrl ?? null,
+          googleScholarUrl: val.googleScholarUrl ?? null,
+          linkedinUrl: val.linkedinUrl ?? null,
+          order: val.order ?? 0,
+          status: val.status,
+        },
+      });
+    } else {
+      await prisma.studentMember.create({
+        data: {
+          name: val.name,
+          slug: val.slug,
+          level: val.level,
+          program: val.program ?? null,
+          batchOrYear: val.batchOrYear ?? null,
+          bio: val.bio ?? null,
+          email: val.email ?? null,
+          photoUrl: val.photoUrl ?? null,
+          googleScholarUrl: val.googleScholarUrl ?? null,
+          linkedinUrl: val.linkedinUrl ?? null,
+          order: val.order ?? 0,
+          status: val.status,
+        },
+      });
+    }
 
     revalidatePath('/people');
     revalidatePath(`/people/${val.slug}`);
