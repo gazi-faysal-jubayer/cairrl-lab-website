@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+}
+
+enum StudentLevel {
+  UNDERGRAD
+  GRAD
+  ALUMNI
+}
+
+enum ProjectStatus {
+  PLANNED
+  ONGOING
+  COMPLETED
+}
+
+enum PublicationType {
+  JOURNAL
+  CONFERENCE
+  THESIS
+  PREPRINT
+  BOOK_CHAPTER
+}
+
+enum EventType {
+  SEMINAR
+  TALK
+  WORKSHOP
+  DEFENSE
+  OTHER
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String?
+  role         UserRole  @default(EDITOR)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model FacultyMember {
+  id               String         @id @default(cuid())
+  slug             String         @unique
+  name             String
+  designation      String
+  department       String
+  photoUrl         String?
+  bio              String?        @db.Text
+  email            String?
+  googleScholarUrl String?
+  researchGateUrl  String?
+  linkedinUrl      String?
+  researchAreas    ResearchArea[]
+  order            Int            @default(0)
+  status           ContentStatus  @default(PUBLISHED)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model StudentMember {
+  id               String         @id @default(cuid())
+  slug             String         @unique
+  name             String
+  level            StudentLevel
+  program          String?
+  batchOrYear      String?
+  photoUrl         String?
+  bio              String?        @db.Text
+  email            String?
+  googleScholarUrl String?
+  linkedinUrl      String?
+  researchAreas    ResearchArea[]
+  order            Int            @default(0)
+  status           ContentStatus  @default(PUBLISHED)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model ResearchArea {
+  id            String          @id @default(cuid())
+  slug          String          @unique
+  name          String
+  description   String          @db.Text
+  coverImageUrl String?
+  faculty       FacultyMember[]
+  students      StudentMember[]
+  projects      Project[]
+  publications  Publication[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Project {
+  id            String          @id @default(cuid())
+  slug          String          @unique
+  title         String
+  summary       String
+  description   String          @db.Text
+  status        ProjectStatus   @default(ONGOING)
+  startDate     DateTime?
+  endDate       DateTime?
+  coverImageUrl String?
+  researchAreas ResearchArea[]
+  publications  Publication[]
+  galleryItems  GalleryItem[]
+  contentStatus ContentStatus   @default(PUBLISHED)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Publication {
+  id            String          @id @default(cuid())
+  title         String
+  authors       String
+  venue         String
+  year          Int
+  type          PublicationType
+  abstract      String?         @db.Text
+  doiOrLink     String?
+  pdfUrl        String?
+  featured      Boolean         @default(false)
+  researchAreas ResearchArea[]
+  project       Project?        @relation(fields: [projectId], references: [id])
+  projectId     String?
+  status        ContentStatus   @default(PUBLISHED)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model NewsPost {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  title         String
+  excerpt       String
+  body          String        @db.Text
+  coverImageUrl String?
+  publishedAt   DateTime      @default(now())
+  status        ContentStatus @default(PUBLISHED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Event {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  title         String
+  type          EventType
+  description   String        @db.Text
+  startAt       DateTime
+  endAt         DateTime?
+  location      String?
+  isOnline      Boolean       @default(false)
+  coverImageUrl String?
+  status        ContentStatus @default(PUBLISHED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  caption   String?
+  category  String?
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+  createdAt DateTime @default(now())
+}
+
+model SiteSetting {
+  id               String   @id @default("singleton")
+  labFullName      String
+  labShortName     String
+  tagline          String
+  missionStatement String   @db.Text
+  address          String?
+  contactEmail     String?
+  phone            String?
+  socialLinks      Json?
+  heroImageUrl     String?
+  updatedAt        DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

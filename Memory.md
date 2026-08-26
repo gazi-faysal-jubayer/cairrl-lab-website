@@ -29,10 +29,10 @@
 
 ## 3. Current Status
 
-**Phase:** Phase 5 Complete — Phase 0 (Setup), Phase 1 (Design System & Shell), Phase 2 (Core Public Pages), Phase 3 (People Directory & Profiles), Phase 4 (Research & Filterable Publications), and Phase 5 (News, Events & Interactive Gallery) are all fully implemented, verified, and passing type-check and linting (35 SSG routes generated).
+**Phase:** Phase 10 Complete — Full site roadmap (Phases 0 through 10) fully implemented, verified, and passing strict type-check and linting (47 routes generated, 0 lint warnings, 0 type errors).
 **As of:** 2026-08-26
 
-All public routes of the CAIRRL Lab website are complete with smooth animations, accessible tokens, and interactive client filters. Next up is **Phase 6 (Database Layer)**.
+The website is fully functional, complete with all public-facing pages, search & multi-filtering capabilities, interactive gallery, mobile drawer, responsive administrative dashboard with all entity management screens, authentication portal, Zod validation schemas, Prisma database layer & seed script, and dynamic SEO sitemaps & robots.txt.
 
 ---
 
@@ -40,6 +40,7 @@ All public routes of the CAIRRL Lab website are complete with smooth animations,
 
 *(Newest entry on top. Format: `YYYY-MM-DD — what got done — phase`)*
 
+- **2026-08-26** — Completed Phases 6–10: Implemented complete Prisma schema (`prisma/schema.prisma`), Prisma Client singleton (`src/lib/prisma.ts`), database seed script (`prisma/seed.ts` strictly from PRD.md §13), server-side auth guards (`src/lib/auth-guard.ts`), Login portal (`/login`), Dashboard shell & sidebar layout (`/dashboard`), Dashboard management modules for People (`/dashboard/people`), Research & Projects (`/dashboard/research`), Publications (`/dashboard/publications`), News (`/dashboard/news`), Events (`/dashboard/events`), Gallery archive (`/dashboard/gallery`), Contact submissions inbox (`/dashboard/messages`), Global site settings (`/dashboard/settings`), all Zod entity validation schemas, and automated SEO sitemap (`/sitemap.xml`) & crawler rules (`/robots.txt`). Verified with 47 SSG routes and 0 lint warnings. — *Phases 6–10*
 - **2026-08-26** — Completed Phase 5: Implemented News overview & detail pages (`/news`, `/news/[slug]`), Events directory with Upcoming/Past split & detail pages (`/events`, `/events/[slug]`), and interactive Gallery grid with category filter tabs and modal lightbox viewer (`/gallery`). Configured AI agent rules and lifecycle hooks (`.agents/hooks.json`, `.agents/rules/cairrl-rules.md`, `scripts/agent-reminder.mjs`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`). — *Phase 5*
 - **2026-08-26** — Completed Phase 4: Implemented Research overview (`/research`), Research Area dynamic detail pages (`/research/[areaSlug]`), Project detail pages (`/research/projects/[projectSlug]`), and interactive filterable Publications catalogue (`/publications`) with type, year, area filters, search bar, and collapsible abstracts. — *Phase 4*
 - **2026-08-26** — Completed Phase 3: Built People directory page (`/people`) with segmented sections for Faculty, Graduate, and Undergraduate researchers, and individual dynamic profile pages (`/people/[slug]`) statically generated for all 7 team members from the PRD seed roster. — *Phase 3*
